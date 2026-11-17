@@ -20,6 +20,14 @@
   .done{background:#27ae60}.act{background:#e67e22;box-shadow:0 0 0 2px #f39c12 inset}.auto{background:#2980b9}.hid{display:none!important}
   .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
   .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
+  .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:460px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+  .srch-row{display:flex;flex-direction:column;gap:6px}
+  .srch-in{padding:6px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--tc);color:var(--tx);font-size:12px;font-weight:bold}
+  .srch-ans{margin-top:7px;padding:7px 9px;border-radius:4px;background:#252c38;font-size:12px;font-weight:bold;line-height:1.35}
+  .ans-unk{color:#ffffff}
+  .ans-red{color:#ff5252;background:#3b1818;border-left:3px solid #e74c3c}
+  .adm-rsn{margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd);display:flex;flex-direction:column;gap:5px}
+  .adm-lbl{font-size:11px;font-weight:bold;color:#e67e22}
   .wrap{background:var(--card);padding:8px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.18);display:inline-block;max-width:100%}
   .st-box{margin-bottom:8px;display:flex;flex-direction:column;gap:4px;max-width:460px}
   .st-msg{padding:6px 9px;border-radius:5px;font-size:11px;font-weight:bold;line-height:1.35}
@@ -70,6 +78,25 @@
   <div class="li"><div class="box light-red"></div> Запланированное отключение</div>
   <div class="li"><div class="box red"></div> Добавленное отключение</div>
 </div>
+<div class="srch-box">
+  <div class="srch-row">
+    <input class="srch-in" id="qIn" type="text" placeholder="Введите очередь (например: 1.1)" oninput="chkRsn()">
+    <select class="srch-in" id="qAsk" onchange="chkRsn()">
+      <option value="">Выберите причину про эту очередь...</option>
+      <option value="1">Почему эта очередь отключена, хотя по графику должна была быть включена?</option>
+    </select>
+  </div>
+  <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
+  <div class="adm-rsn hid" id="admRsn">
+    <span class="adm-lbl">🔒 Настройка причины (только для админа):</span>
+    <select class="srch-in" id="admQ" onchange="syncAdmSel()"></select>
+    <select class="srch-in" id="admR" onchange="setAdmRsn()">
+      <option value="0">Не задано (для всех будет: Неизвестно)</option>
+      <option value="1">Эта очередь была отключена из-за резкого напряжения</option>
+      <option value="2">Эта очередь была отключена из-за того, что по этой очереди не пишут новости, поэтому её резко отключили</option>
+    </select>
+  </div>
+</div>
 <div class="wrap" id="wr">
   <div class="st-box" id="st1"></div>
   <table id="tb1"></table>
@@ -83,8 +110,15 @@
 </div>
 <script>
 let ed=0,tl='paint',au=1;
+const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
+const RSN_TXT={
+  "1":"Эта очередь была отключена из-за резкого напряжения",
+  "2":"Эта очередь была отключена из-за того, что по этой очереди не пишут новости, поэтому её резко отключили"
+};
+let qReasons={};
 const prevB={tb1:new Set(),tb2:new Set()},turnedOn={tb1:{},tb2:{}};
-const wr=document.getElementById('wr'),bP=document.getElementById('bP'),bB=document.getElementById('bB'),bA=document.getElementById('bA'),bE=document.getElementById('bE');
+const wr=document.getElementById('wr'),bP=document.getElementById('bP'),bB=document.getElementById('bB'),bA=document.getElementById('bA'),bE=document.getElementById('bE'),admRsn=document.getElementById('admRsn');
+document.getElementById('admQ').innerHTML="<option value='ALL'>Все очереди сразу</option>"+ALL_Q.map(q=>"<option value='"+q+"'>Очередь "+q+"</option>").join("");
 function togThm(){let d=document.body.classList.toggle('dark');document.getElementById('thmBtn').textContent=d?"☀️ Светлая":"🌙 Темная";localStorage.setItem('gt',d?'1':'0');}
 if(localStorage.getItem('gt')==='1'){document.body.classList.add('dark');document.getElementById('thmBtn').textContent="☀️ Светлая";}
 function mkT(id,qs){
@@ -95,7 +129,7 @@ function mkT(id,qs){
   }
   document.getElementById(id).innerHTML=h+b;
 }
-mkT('tb1',["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"]);
+mkT('tb1',ALL_Q);
 mkT('tb2',["1.1","1.2","2.1","2.2","3.1","3.2","4.1"]);
 let g1="",g2="";
 for(let i=1;i<=18;i++)g1+="<div class='gi' onclick='bClk(this)'>ГВО "+i+"</div>";
@@ -104,9 +138,27 @@ document.getElementById('gvo').innerHTML=g1;document.getElementById('gko').inner
 function togAdm(){
   if(!ed){
     let p=prompt("Введите пароль:");
-    if(p==="1234"){ed=1;wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA].forEach(x=>x.classList.remove('hid'));setT('paint');upd();}
+    if(p==="1234"){ed=1;wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.remove('hid'));syncAdmSel();setT('paint');upd();}
     else if(p!==null)alert("Неверный пароль!");
-  }else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA].forEach(x=>x.classList.add('hid'));svH();upd();}
+  }else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.add('hid'));svH();upd();}
+}
+function syncAdmSel(){
+  let q=document.getElementById('admQ').value;
+  document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";
+}
+function setAdmRsn(){
+  let q=document.getElementById('admQ').value,r=document.getElementById('admR').value;
+  if(q==='ALL'){ALL_Q.forEach(x=>{if(r==='0')delete qReasons[x];else qReasons[x]=r;});}
+  else{if(r==='0')delete qReasons[q];else qReasons[q]=r;}
+  chkRsn();svH();
+}
+function chkRsn(){
+  let q=document.getElementById('qIn').value.trim().replace(',','.'),ask=document.getElementById('qAsk').value,ans=document.getElementById('qAns');
+  if(!q||!ask){ans.classList.add('hid');return;}
+  ans.classList.remove('hid');
+  let r=qReasons[q];
+  if(r&&RSN_TXT[r]){ans.textContent=RSN_TXT[r];ans.className="srch-ans ans-red";}
+  else{ans.textContent="Неизвестно";ans.className="srch-ans ans-unk";}
 }
 function setT(t){tl=t;bP.classList.toggle('act',t==='paint');bB.classList.toggle('act',t==='blink');if(t==='blink'){au=0;updA();svH();}}
 function togA(){au=!au;updA();if(au)setT('paint');svH();}
@@ -121,7 +173,8 @@ function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classLi
 function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
-  return (au?'1':'0')+'_'+cs+'_'+bs;
+  let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');
+  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs;
 }
 function svH(){
   let code=getCode();
@@ -132,11 +185,12 @@ function ldH(){
   let h=location.hash.slice(1);
   if(!h||!h.includes('_')){try{h=localStorage.getItem('gpo_saved_state')||'';}catch(e){}}
   if(!h||!h.includes('_'))return;
-  let [a,cs,bs]=h.split('_');au=(a==='1');updA();
+  let [a,cs,bs,rs]=h.split('_');au=(a==='1');updA();
   let cls=['green','yellow','light-red','red'];
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
   document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
-  svH();
+  if(rs){qReasons={};ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
+  chkRsn();svH();
 }
 function copyLink(){
   svH();let l=location.href;
