@@ -50,6 +50,12 @@
   .t2{margin-top:14px;padding-top:12px;border-top:1px solid var(--dv)}
   .green{background:#2ecc71}.yellow{background:#f1c40f}.light-red{background:#f1948a}.red{background:#e74c3c}
   .edit td:not(.tc),.edit .gi,.edit .ki{cursor:pointer}.edit .mb{outline:2px dashed #111;outline-offset:-2px}
+  .lock-scr{position:fixed;inset:0;background:#12151c;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;z-index:9999}
+  .lock-card{background:#1c212b;border:1px solid #323a48;border-radius:12px;padding:24px 20px;max-width:380px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .lock-ico{font-size:42px;margin-bottom:10px}
+  .lock-ttl{font-size:20px;font-weight:bold;margin-bottom:8px;color:#f1c40f}
+  .lock-txt{font-size:13px;color:#d8dee9;line-height:1.45;margin-bottom:18px}
+  .own-btn{background:transparent;color:#6c7a89;border:1px solid #2e3646;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer}
   @keyframes bBlueG{0%,100%{background:#2ecc71;color:var(--cl)}50%{background:#1e6bb8;color:#fff}}
   @keyframes bBlueY{0%,100%{background:#f1c40f;color:var(--cl)}50%{background:#2980b9;color:#fff}}
   @keyframes bBlueL{0%,100%{background:#f1948a;color:var(--cl)}50%{background:#2471a3;color:#fff}}
@@ -60,6 +66,14 @@
 </style>
 </head>
 <body>
+<div class="lock-scr hid" id="lockScr">
+  <div class="lock-card">
+    <div class="lock-ico" id="lockIco">⏸</div>
+    <div class="lock-ttl" id="lockTtl">Перерыв сайта</div>
+    <div class="lock-txt" id="lockTxt">График временно приостановлен. Пожалуйста, зайдите немного позже.</div>
+    <button class="own-btn" onclick="unlockOwner()">🔑 Вход для владельца</button>
+  </div>
+</div>
 <div class="top">
   <div class="tg">
     <h2>График отключений</h2><span class="bdg">ГПО</span>
@@ -91,7 +105,15 @@
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
     <div class="adm-top">
-      <span class="adm-lbl">🔒 Причина отключения (только для админа):</span>
+      <span class="adm-lbl">🔒 Доступ к сайту (закрыть для всех):</span>
+    </div>
+    <select class="srch-in" id="siteSt" onchange="setSiteSt()">
+      <option value="0">🟢 Сайт открыт (работает для всех)</option>
+      <option value="1">⏸ Перерыв сайта (закрыть сайт)</option>
+      <option value="2">🛠 Технические работы (закрыть сайт)</option>
+    </select>
+    <div class="adm-top" style="margin-top:4px">
+      <span class="adm-lbl">🔒 Причина отключения очереди:</span>
       <button class="rst-btn" onclick="resetAllRsn()">🧹 Сбросить все</button>
     </div>
     <select class="srch-in" id="admQ" onchange="syncAdmSel()"></select>
@@ -114,7 +136,7 @@
   </div>
 </div>
 <script>
-let ed=0,tl='paint',au=1;
+let ed=0,tl='paint',au=1,siteMode="0";
 const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
 const RSN_TXT={
   "1":"Эта очередь была отключена из-за резкого напряжения",
@@ -140,28 +162,39 @@ let g1="",g2="";
 for(let i=1;i<=18;i++)g1+="<div class='gi' onclick='bClk(this)'>ГВО "+i+"</div>";
 for(let i=1;i<=4;i++)g2+="<div class='ki' onclick='bClk(this)'>ГКО "+i+"</div>";
 document.getElementById('gvo').innerHTML=g1;document.getElementById('gko').innerHTML=g2;
+function applyLock(){
+  const scr=document.getElementById('lockScr');
+  if(!ed&&siteMode!=="0"){
+    scr.classList.remove('hid');
+    if(siteMode==="1"){
+      document.getElementById('lockIco').textContent="⏸";
+      document.getElementById('lockTtl').textContent="Перерыв сайта";
+      document.getElementById('lockTxt').textContent="Сайт временно закрыт на перерыв. Пожалуйста, зайдите чуть позже.";
+    }else{
+      document.getElementById('lockIco').textContent="🛠";
+      document.getElementById('lockTtl').textContent="Технические работы";
+      document.getElementById('lockTxt').textContent="";
+    }
+  }else scr.classList.add('hid');
+}
+function setSiteSt(){siteMode=document.getElementById('siteSt').value;svH();}
+function unlockOwner(){
+  let p=prompt("Введите пароль владельца:");
+  if(p==="1234"){ed=1;wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.remove('hid'));document.getElementById('siteSt').value=siteMode;syncAdmSel();setT('paint');applyLock();upd();}
+  else if(p!==null)alert("Неверный пароль!");
+}
 function togAdm(){
-  if(!ed){
-    let p=prompt("Введите пароль:");
-    if(p==="1234"){ed=1;wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.remove('hid'));syncAdmSel();setT('paint');upd();}
-    else if(p!==null)alert("Неверный пароль!");
-  }else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.add('hid'));svH();upd();}
+  if(!ed)unlockOwner();
+  else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.add('hid'));svH();applyLock();upd();}
 }
-function syncAdmSel(){
-  let q=document.getElementById('admQ').value;
-  document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";
-}
+function syncAdmSel(){let q=document.getElementById('admQ').value;document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";}
 function setAdmRsn(){
   let q=document.getElementById('admQ').value,r=document.getElementById('admR').value;
   if(q==='ALL'){ALL_Q.forEach(x=>{if(r==='0')delete qReasons[x];else qReasons[x]=r;});}
   else{if(r==='0')delete qReasons[q];else qReasons[q]=r;}
   chkRsn();svH();
 }
-function resetAllRsn(){
-  qReasons={};
-  document.getElementById('admR').value="0";
-  chkRsn();svH();
-}
+function resetAllRsn(){qReasons={};document.getElementById('admR').value="0";chkRsn();svH();}
 function chkRsn(){
   let q=document.getElementById('qIn').value.trim().replace(',','.'),ask=document.getElementById('qAsk').value,ans=document.getElementById('qAns');
   if(!q||!ask){ans.classList.add('hid');return;}
@@ -184,7 +217,7 @@ function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
   let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');
-  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs;
+  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode;
 }
 function svH(){
   let code=getCode();
@@ -195,12 +228,14 @@ function ldH(){
   let h=location.hash.slice(1);
   if(!h||!h.includes('_')){try{h=localStorage.getItem('gpo_saved_state')||'';}catch(e){}}
   if(!h||!h.includes('_'))return;
-  let [a,cs,bs,rs]=h.split('_');au=(a==='1');updA();
+  let [a,cs,bs,rs,sm]=h.split('_');au=(a==='1');updA();
+  siteMode=(sm==='1'||sm==='2')?sm:"0";
+  document.getElementById('siteSt').value=siteMode;
   let cls=['green','yellow','light-red','red'];
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
   document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
   if(rs){qReasons={};ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
-  chkRsn();svH();
+  chkRsn();applyLock();svH();
 }
 function copyLink(){
   svH();let l=location.href;
@@ -271,7 +306,7 @@ function upd(){
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
-ldH();updA();upd();setInterval(upd,1000);
+ldH();updA();applyLock();upd();setInterval(upd,1000);
 </script>
 </body>
 </html>
