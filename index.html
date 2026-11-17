@@ -108,26 +108,35 @@ function togAdm(){
     else if(p!==null)alert("Неверный пароль!");
   }else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA].forEach(x=>x.classList.add('hid'));svH();upd();}
 }
-function setT(t){tl=t;bP.classList.toggle('act',t==='paint');bB.classList.toggle('act',t==='blink');if(t==='blink'){au=0;updA();}}
-function togA(){au=!au;updA();if(au)setT('paint');}
+function setT(t){tl=t;bP.classList.toggle('act',t==='paint');bB.classList.toggle('act',t==='blink');if(t==='blink'){au=0;updA();svH();}}
+function togA(){au=!au;updA();if(au)setT('paint');svH();}
 function updA(){bA.textContent=au?"⏱ Авто: ВКЛ":"⏱ Авто: ВЫКЛ";bA.classList.toggle('auto',au);}
 function cClk(c){
   if(!ed)return;
   if(tl==='paint'){let m=c.classList.contains('mb');c.className=c.classList.contains('green')?'yellow':c.classList.contains('yellow')?'light-red':c.classList.contains('light-red')?'red':'green';if(m)c.classList.add('mb');}
   else c.classList.toggle('mb');
+  svH();
 }
-function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classList.toggle('mb');}}
-function svH(){
+function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classList.toggle('mb');svH();}}
+function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
-  history.replaceState(null,'','#'+(au?'1':'0')+'_'+cs+'_'+bs);
+  return (au?'1':'0')+'_'+cs+'_'+bs;
+}
+function svH(){
+  let code=getCode();
+  history.replaceState(null,'','#'+code);
+  try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
 }
 function ldH(){
-  let h=location.hash.slice(1);if(!h||!h.includes('_'))return;
+  let h=location.hash.slice(1);
+  if(!h||!h.includes('_')){try{h=localStorage.getItem('gpo_saved_state')||'';}catch(e){}}
+  if(!h||!h.includes('_'))return;
   let [a,cs,bs]=h.split('_');au=(a==='1');updA();
   let cls=['green','yellow','light-red','red'];
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
   document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
+  svH();
 }
 function copyLink(){
   svH();let l=location.href;
