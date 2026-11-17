@@ -20,16 +20,18 @@
   .done{background:#27ae60}.act{background:#e67e22;box-shadow:0 0 0 2px #f39c12 inset}.auto{background:#2980b9}.hid{display:none!important}
   .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
   .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
-  .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:460px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+  .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:480px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
   .srch-row{display:flex;flex-direction:column;gap:6px}
-  .srch-in{padding:6px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--tc);color:var(--tx);font-size:12px;font-weight:bold}
-  .srch-ans{margin-top:7px;padding:7px 9px;border-radius:4px;background:#252c38;font-size:12px;font-weight:bold;line-height:1.35}
-  .ans-unk{color:#ffffff}
+  .srch-in{padding:6px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--tc);color:var(--tx);font-size:12px;font-weight:bold;width:100%;box-sizing:border-box}
+  .srch-ans{margin-top:7px;padding:7px 9px;border-radius:4px;font-size:12px;font-weight:bold;line-height:1.35}
+  .ans-unk{background:#252c38;color:#ffffff}
   .ans-red{color:#ff5252;background:#3b1818;border-left:3px solid #e74c3c}
   .adm-rsn{margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd);display:flex;flex-direction:column;gap:5px}
+  .adm-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
   .adm-lbl{font-size:11px;font-weight:bold;color:#e67e22}
+  .rst-btn{background:#c0392b;color:#fff;border:none;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:bold}
   .wrap{background:var(--card);padding:8px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.18);display:inline-block;max-width:100%}
-  .st-box{margin-bottom:8px;display:flex;flex-direction:column;gap:4px;max-width:460px}
+  .st-box{margin-bottom:8px;display:flex;flex-direction:column;gap:4px;max-width:480px}
   .st-msg{padding:6px 9px;border-radius:5px;font-size:11px;font-weight:bold;line-height:1.35}
   .st-off{background:#fdecea;color:#922b21;border-left:4px solid #e74c3c}
   .st-on{background:#eafaf1;color:#1e8449;border-left:4px solid #2ecc71}
@@ -82,13 +84,16 @@
   <div class="srch-row">
     <input class="srch-in" id="qIn" type="text" placeholder="Введите очередь (например: 1.1)" oninput="chkRsn()">
     <select class="srch-in" id="qAsk" onchange="chkRsn()">
-      <option value="">Выберите причину про эту очередь...</option>
-      <option value="1">Почему эта очередь отключена, хотя по графику должна была быть включена?</option>
+      <option value="">Выберите вопрос про эту очередь...</option>
+      <option value="1">Почему очередь отключена, хотя по графику должна быть включена?</option>
     </select>
   </div>
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
-    <span class="adm-lbl">🔒 Настройка причины (только для админа):</span>
+    <div class="adm-top">
+      <span class="adm-lbl">🔒 Причина отключения (только для админа):</span>
+      <button class="rst-btn" onclick="resetAllRsn()">🧹 Сбросить все</button>
+    </div>
     <select class="srch-in" id="admQ" onchange="syncAdmSel()"></select>
     <select class="srch-in" id="admR" onchange="setAdmRsn()">
       <option value="0">Не задано (для всех будет: Неизвестно)</option>
@@ -118,7 +123,7 @@ const RSN_TXT={
 let qReasons={};
 const prevB={tb1:new Set(),tb2:new Set()},turnedOn={tb1:{},tb2:{}};
 const wr=document.getElementById('wr'),bP=document.getElementById('bP'),bB=document.getElementById('bB'),bA=document.getElementById('bA'),bE=document.getElementById('bE'),admRsn=document.getElementById('admRsn');
-document.getElementById('admQ').innerHTML="<option value='ALL'>Все очереди сразу</option>"+ALL_Q.map(q=>"<option value='"+q+"'>Очередь "+q+"</option>").join("");
+document.getElementById('admQ').innerHTML="<option value='1.1'>Очередь 1.1</option>"+ALL_Q.slice(1).map(q=>"<option value='"+q+"'>Очередь "+q+"</option>").join("")+"<option value='ALL'>Все очереди сразу</option>";
 function togThm(){let d=document.body.classList.toggle('dark');document.getElementById('thmBtn').textContent=d?"☀️ Светлая":"🌙 Темная";localStorage.setItem('gt',d?'1':'0');}
 if(localStorage.getItem('gt')==='1'){document.body.classList.add('dark');document.getElementById('thmBtn').textContent="☀️ Светлая";}
 function mkT(id,qs){
@@ -150,6 +155,11 @@ function setAdmRsn(){
   let q=document.getElementById('admQ').value,r=document.getElementById('admR').value;
   if(q==='ALL'){ALL_Q.forEach(x=>{if(r==='0')delete qReasons[x];else qReasons[x]=r;});}
   else{if(r==='0')delete qReasons[q];else qReasons[q]=r;}
+  chkRsn();svH();
+}
+function resetAllRsn(){
+  qReasons={};
+  document.getElementById('admR').value="0";
   chkRsn();svH();
 }
 function chkRsn(){
