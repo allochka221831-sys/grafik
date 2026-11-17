@@ -37,11 +37,11 @@
   .st-on{background:#eafaf1;color:#1e8449;border-left:4px solid #2ecc71}
   body.dark .st-off{background:#3b1c1c;color:#f5b7b1}
   body.dark .st-on{background:#193626;color:#a9dfbf}
-  table{border-collapse:collapse;text-align:center}
-  th,td{border:1px solid var(--bd);padding:1px;width:24px;height:19px}
+  table{border-collapse:collapse;text-align:center;table-layout:fixed}
+  th,td{border:1px solid var(--bd);padding:0;width:24px;height:24px;box-sizing:border-box}
   th{background:var(--th);font-weight:bold;position:sticky;top:0;z-index:2;font-size:10px;color:var(--tx)}
-  td:not(.tc){font-size:9px;font-weight:bold;color:var(--cl);user-select:none}
-  .tc{font-weight:bold;background:var(--tc);width:82px;white-space:nowrap;padding:2px 6px;font-size:10px;color:var(--tx)}
+  td:not(.tc){font-size:9px;font-weight:bold;color:var(--cl);user-select:none;line-height:22px}
+  .tc{font-weight:bold;background:var(--tc);width:84px;white-space:nowrap;padding:0 6px;font-size:10px;color:var(--tx)}
   tr.cur .tc{background:var(--cub);color:var(--cut);border-left:3px solid #2980b9}
   .gvo{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dv)}
   .gko{display:flex;justify-content:center;gap:6px;margin-top:8px}
@@ -50,13 +50,13 @@
   .t2{margin-top:14px;padding-top:12px;border-top:1px solid var(--dv)}
   .green{background:#2ecc71}.yellow{background:#f1c40f}.light-red{background:#f1948a}.red{background:#e74c3c}
   .edit td:not(.tc),.edit .gi,.edit .ki{cursor:pointer}.edit .mb{outline:2px dashed #111;outline-offset:-2px}
-  @keyframes bG{0%,100%{background:#2ecc71}50%{background:#a9dfbf}}
-  @keyframes bY{0%,100%{background:#f1c40f}50%{background:#fcf3cf}}
-  @keyframes bL{0%,100%{background:#f1948a}50%{background:#fadbd8}}
-  @keyframes bR{0%,100%{background:#e74c3c}50%{background:#ff9999}}
-  @keyframes bB{0%,100%{background:#82e0aa}50%{background:#d4efdf}}
-  .green.bn{animation:bG 1s infinite}.yellow.bn{animation:bY 1s infinite}.light-red.bn{animation:bL 1s infinite}
-  .red.bn,.off.bn{animation:bR 1s infinite}.gi.bn:not(.off),.ki.bn:not(.off){animation:bB 1s infinite}
+  @keyframes bBlueG{0%,100%{background:#2ecc71;color:var(--cl)}50%{background:#1e6bb8;color:#fff}}
+  @keyframes bBlueY{0%,100%{background:#f1c40f;color:var(--cl)}50%{background:#2980b9;color:#fff}}
+  @keyframes bBlueL{0%,100%{background:#f1948a;color:var(--cl)}50%{background:#2471a3;color:#fff}}
+  @keyframes bBlueR{0%,100%{background:#e74c3c;color:#fff}50%{background:#1b5fa7;color:#fff}}
+  @keyframes bBlueB{0%,100%{background:#82e0aa;color:#143625}50%{background:#2980b9;color:#fff}}
+  .green.bn{animation:bBlueG 1s infinite}.yellow.bn{animation:bBlueY 1s infinite}.light-red.bn{animation:bBlueL 1s infinite}
+  .red.bn,.off.bn{animation:bBlueR 1s infinite}.gi.bn:not(.off),.ki.bn:not(.off){animation:bBlueB 1s infinite}
 </style>
 </head>
 <body>
@@ -209,8 +209,9 @@ function copyLink(){
 }
 function shC(){let b=document.getElementById('famBtn');b.textContent="✅ Скопировано!";setTimeout(()=>{b.textContent="🔗 Ссылка для семьи";},2500);}
 function isOff(c){return c&&(c.classList.contains('red')||c.classList.contains('light-red')||c.classList.contains('yellow'));}
+function getRow(tb,s){return tb.querySelector('tr.s'+s);}
 function updStatus(tbId,stId,cur,remMin,nowMs){
-  const tb=document.getElementById(tbId),rows=tb.querySelectorAll('tbody tr'),curB=new Set();
+  const tb=document.getElementById(tbId),curB=new Set();
   tb.querySelectorAll('td.bn').forEach(c=>curB.add(c.textContent.trim()));
   if(!ed){
     prevB[tbId].forEach(q=>{if(!curB.has(q))turnedOn[tbId][q]=nowMs+300000;});
@@ -218,22 +219,23 @@ function updStatus(tbId,stId,cur,remMin,nowMs){
     prevB[tbId].clear();curB.forEach(q=>prevB[tbId].add(q));
   }
   let html="";
-  if(curB.size>0&&rows[cur]){
+  const curRow=getRow(tb,cur);
+  if(curB.size>0&&curRow){
     const hdr=[...tb.querySelectorAll('th:not(.tc)')].map(th=>th.textContent.trim());
-    const curCells=rows[cur].querySelectorAll('td:not(.tc)');
+    const curCells=curRow.querySelectorAll('td:not(.tc)');
     let details=[];
     curB.forEach(q=>{
       let ci=hdr.indexOf(q);if(ci<0)return;
       let s=cur;
-      while(s<48&&isOff(rows[s].querySelectorAll('td:not(.tc)')[ci]))s++;
-      let mins=remMin+(s-cur-1)*30;
+      while(s<48&&isOff(getRow(tb,s).querySelectorAll('td:not(.tc)')[ci]))s++;
+      let mins=remMin+Math.max(0,s-cur-1)*30;
       let tStr=mins>=60?Math.floor(mins/60)+" ч "+(mins%60?mins%60+" мин":""):mins+" мин";
       details.push("Очередь "+q+" включится через "+tStr);
     });
     let repl=[];
     for(let s=cur+1;s<48;s++){
-      let fCells=rows[s].querySelectorAll('td:not(.tc)');
-      let pCells=rows[s-1].querySelectorAll('td:not(.tc)');
+      let fCells=getRow(tb,s).querySelectorAll('td:not(.tc)');
+      let pCells=getRow(tb,s-1).querySelectorAll('td:not(.tc)');
       fCells.forEach((nc,ni)=>{
         let nq=hdr[ni];
         if(isOff(nc)&&!isOff(pCells[ni])&&!isOff(curCells[ni])&&!curB.has(nq))repl.push(nq);
