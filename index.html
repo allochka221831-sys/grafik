@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>График отключений ГПО / ГЕО</title>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--tx:#333;--bd:#dcdcdc;--th:#eef2f7;--tc:#f9fafb;--cb:#eef2f7;--ct:#2c3e50;--cub:#d6eaf8;--cut:#1b4f72;--dv:#e5e7eb;--cl:rgba(0,0,0,.78)}
+  body.dark{--bg:#12151c;--card:#1c212b;--tx:#e5e9f0;--bd:#323a48;--th:#252c38;--tc:#202632;--cb:#252c38;--ct:#d8dee9;--cub:#1e3a5f;--cut:#88c0d0;--dv:#2e3646;--cl:rgba(0,0,0,.88)}
+  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--tx);padding:10px;transition:.2s}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+  .tg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  h2{margin:0;color:var(--tx);font-size:16px}
+  .bdg{background:linear-gradient(135deg,#2980b9,#1f618d);color:#fff;font-weight:bold;font-size:13px;padding:3px 9px;border-radius:5px;letter-spacing:1px}
+  .fb{background:#16a085;color:#fff;border:none;padding:4px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:bold}
+  .tb{background:var(--th);color:var(--tx);border:1px solid var(--bd);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:bold}
+  .clk{font-weight:bold;background:var(--cb);padding:4px 8px;border-radius:4px;font-size:12px;color:var(--ct)}
+  .ct{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .btn{background:#34495e;color:#fff;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold}
+  .done{background:#27ae60}.act{background:#e67e22;box-shadow:0 0 0 2px #f39c12 inset}.auto{background:#2980b9}.hid{display:none!important}
+  .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
+  .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
+  .wrap{background:var(--card);padding:8px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.18);display:inline-block;max-width:100%}
+  .st-box{margin-bottom:8px;display:flex;flex-direction:column;gap:4px;max-width:460px}
+  .st-msg{padding:6px 9px;border-radius:5px;font-size:11px;font-weight:bold;line-height:1.35}
+  .st-off{background:#fdecea;color:#922b21;border-left:4px solid #e74c3c}
+  .st-on{background:#eafaf1;color:#1e8449;border-left:4px solid #2ecc71}
+  body.dark .st-off{background:#3b1c1c;color:#f5b7b1}
+  body.dark .st-on{background:#193626;color:#a9dfbf}
+  table{border-collapse:collapse;text-align:center}
+  th,td{border:1px solid var(--bd);padding:1px;width:24px;height:19px}
+  th{background:var(--th);font-weight:bold;position:sticky;top:0;z-index:2;font-size:10px;color:var(--tx)}
+  td:not(.tc){font-size:9px;font-weight:bold;color:var(--cl);user-select:none}
+  .tc{font-weight:bold;background:var(--tc);width:82px;white-space:nowrap;padding:2px 6px;font-size:10px;color:var(--tx)}
+  tr.cur .tc{background:var(--cub);color:var(--cut);border-left:3px solid #2980b9}
+  .gvo{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dv)}
+  .gko{display:flex;justify-content:center;gap:6px;margin-top:8px}
+  .gi,.ki{background:#82e0aa;color:#143625;font-size:9px;font-weight:bold;text-align:center;padding:6px 4px;border-radius:4px;user-select:none;border:1px solid rgba(0,0,0,.15)}
+  .ki{min-width:48px}.off{background:#e74c3c;color:#fff}
+  .t2{margin-top:14px;padding-top:12px;border-top:1px solid var(--dv)}
+  .green{background:#2ecc71}.yellow{background:#f1c40f}.light-red{background:#f1948a}.red{background:#e74c3c}
+  .edit td:not(.tc),.edit .gi,.edit .ki{cursor:pointer}.edit .mb{outline:2px dashed #111;outline-offset:-2px}
+  @keyframes bG{0%,100%{background:#2ecc71}50%{background:#a9dfbf}}
+  @keyframes bY{0%,100%{background:#f1c40f}50%{background:#fcf3cf}}
+  @keyframes bL{0%,100%{background:#f1948a}50%{background:#fadbd8}}
+  @keyframes bR{0%,100%{background:#e74c3c}50%{background:#ff9999}}
+  @keyframes bB{0%,100%{background:#82e0aa}50%{background:#d4efdf}}
+  .green.bn{animation:bG 1s infinite}.yellow.bn{animation:bY 1s infinite}.light-red.bn{animation:bL 1s infinite}
+  .red.bn,.off.bn{animation:bR 1s infinite}.gi.bn:not(.off),.ki.bn:not(.off){animation:bB 1s infinite}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="tg">
+    <h2>График отключений</h2><span class="bdg">ГПО</span>
+    <button class="fb" id="famBtn" onclick="copyLink()">🔗 Ссылка для семьи</button>
+    <button class="tb" id="thmBtn" onclick="togThm()">🌙 Тема</button>
+  </div>
+  <div class="clk" id="clk">Время: 00:00:00</div>
+  <div class="ct">
+    <button class="btn hid" id="bP" onclick="setT('paint')">🎨 Красить</button>
+    <button class="btn hid" id="bB" onclick="setT('blink')">✨ Ручное мигание</button>
+    <button class="btn hid" id="bA" onclick="togA()">⏱ Авто: ВКЛ</button>
+    <button class="btn" id="bE" onclick="togAdm()">🔒 Изменить</button>
+  </div>
+</div>
+<div class="leg">
+  <div class="li"><div class="box green"></div> Без отключения</div>
+  <div class="li"><div class="box yellow"></div> Возможное включение/отключение</div>
+  <div class="li"><div class="box light-red"></div> Запланированное отключение</div>
+  <div class="li"><div class="box red"></div> Добавленное отключение</div>
+</div>
+<div class="wrap" id="wr">
+  <div class="st-box" id="st1"></div>
+  <table id="tb1"></table>
+  <div class="gvo" id="gvo"></div>
+  <div class="gko" id="gko"></div>
+  <div class="t2">
+    <div class="tg" style="margin-bottom:8px"><h2>График отключений</h2><span class="bdg">ГЕО</span></div>
+    <div class="st-box" id="st2"></div>
+    <table id="tb2"></table>
+  </div>
+</div>
+<script>
+let ed=0,tl='paint',au=1;
+const prevB={tb1:new Set(),tb2:new Set()},turnedOn={tb1:{},tb2:{}};
+const wr=document.getElementById('wr'),bP=document.getElementById('bP'),bB=document.getElementById('bB'),bA=document.getElementById('bA'),bE=document.getElementById('bE');
+function togThm(){let d=document.body.classList.toggle('dark');document.getElementById('thmBtn').textContent=d?"☀️ Светлая":"🌙 Темная";localStorage.setItem('gt',d?'1':'0');}
+if(localStorage.getItem('gt')==='1'){document.body.classList.add('dark');document.getElementById('thmBtn').textContent="☀️ Светлая";}
+function mkT(id,qs){
+  let h="<tr><th class='tc'>Время</th>"+qs.map(q=>"<th>"+q+"</th>").join("")+"</tr>",b="";
+  for(let s=0;s<48;s++){
+    let sh=String(Math.floor(s/2)).padStart(2,"0"),sm=s%2?"30":"00",eh=String(Math.floor((s+1)/2)).padStart(2,"0"),em=(s+1)%2?"30":"00";
+    b+="<tr class='s"+s+"'><td class='tc'>"+sh+"."+sm+"-"+eh+"."+em+"</td>"+qs.map(q=>"<td class='green' onclick='cClk(this)'>"+q+"</td>").join("")+"</tr>";
+  }
+  document.getElementById(id).innerHTML=h+b;
+}
+mkT('tb1',["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"]);
+mkT('tb2',["1.1","1.2","2.1","2.2","3.1","3.2","4.1"]);
+let g1="",g2="";
+for(let i=1;i<=18;i++)g1+="<div class='gi' onclick='bClk(this)'>ГВО "+i+"</div>";
+for(let i=1;i<=4;i++)g2+="<div class='ki' onclick='bClk(this)'>ГКО "+i+"</div>";
+document.getElementById('gvo').innerHTML=g1;document.getElementById('gko').innerHTML=g2;
+function togAdm(){
+  if(!ed){
+    let p=prompt("Введите пароль:");
+    if(p==="1234"){ed=1;wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA].forEach(x=>x.classList.remove('hid'));setT('paint');upd();}
+    else if(p!==null)alert("Неверный пароль!");
+  }else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA].forEach(x=>x.classList.add('hid'));svH();upd();}
+}
+function setT(t){tl=t;bP.classList.toggle('act',t==='paint');bB.classList.toggle('act',t==='blink');if(t==='blink'){au=0;updA();}}
+function togA(){au=!au;updA();if(au)setT('paint');}
+function updA(){bA.textContent=au?"⏱ Авто: ВКЛ":"⏱ Авто: ВЫКЛ";bA.classList.toggle('auto',au);}
+function cClk(c){
+  if(!ed)return;
+  if(tl==='paint'){let m=c.classList.contains('mb');c.className=c.classList.contains('green')?'yellow':c.classList.contains('yellow')?'light-red':c.classList.contains('light-red')?'red':'green';if(m)c.classList.add('mb');}
+  else c.classList.toggle('mb');
+}
+function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classList.toggle('mb');}}
+function svH(){
+  let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
+  let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
+  history.replaceState(null,'','#'+(au?'1':'0')+'_'+cs+'_'+bs);
+}
+function ldH(){
+  let h=location.hash.slice(1);if(!h||!h.includes('_'))return;
+  let [a,cs,bs]=h.split('_');au=(a==='1');updA();
+  let cls=['green','yellow','light-red','red'];
+  document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
+  document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
+}
+function copyLink(){
+  svH();let l=location.href;
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));
+  else prompt("Ссылка:",l);
+}
+function shC(){let b=document.getElementById('famBtn');b.textContent="✅ Скопировано!";setTimeout(()=>{b.textContent="🔗 Ссылка для семьи";},2500);}
+function isOff(c){return c&&(c.classList.contains('red')||c.classList.contains('light-red')||c.classList.contains('yellow'));}
+function updStatus(tbId,stId,cur,remMin,nowMs){
+  const tb=document.getElementById(tbId),rows=tb.querySelectorAll('tbody tr'),curB=new Set();
+  tb.querySelectorAll('td.bn').forEach(c=>curB.add(c.textContent.trim()));
+  if(!ed){
+    prevB[tbId].forEach(q=>{if(!curB.has(q))turnedOn[tbId][q]=nowMs+300000;});
+    curB.forEach(q=>delete turnedOn[tbId][q]);
+    prevB[tbId].clear();curB.forEach(q=>prevB[tbId].add(q));
+  }
+  let html="";
+  if(curB.size>0&&rows[cur]){
+    const hdr=[...tb.querySelectorAll('th:not(.tc)')].map(th=>th.textContent.trim());
+    const curCells=rows[cur].querySelectorAll('td:not(.tc)');
+    let details=[];
+    curB.forEach(q=>{
+      let ci=hdr.indexOf(q);if(ci<0)return;
+      let s=cur;
+      while(s<48&&isOff(rows[s].querySelectorAll('td:not(.tc)')[ci]))s++;
+      let mins=remMin+(s-cur-1)*30;
+      let tStr=mins>=60?Math.floor(mins/60)+" ч "+(mins%60?mins%60+" мин":""):mins+" мин";
+      details.push("Очередь "+q+" включится через "+tStr);
+    });
+    let repl=[];
+    for(let s=cur+1;s<48;s++){
+      let fCells=rows[s].querySelectorAll('td:not(.tc)');
+      let pCells=rows[s-1].querySelectorAll('td:not(.tc)');
+      fCells.forEach((nc,ni)=>{
+        let nq=hdr[ni];
+        if(isOff(nc)&&!isOff(pCells[ni])&&!isOff(curCells[ni])&&!curB.has(nq))repl.push(nq);
+      });
+      if(repl.length>0)break;
+    }
+    let rTxt=repl.length>0?". На замену пойдет: "+repl.join(", "):"";
+    html+="<div class='st-msg st-off'>🔴 "+details.join("; ")+rTxt+"</div>";
+  }
+  let onList=[];
+  for(let q in turnedOn[tbId]){
+    if(turnedOn[tbId][q]>nowMs)onList.push(q);
+    else delete turnedOn[tbId][q];
+  }
+  if(onList.length>0){
+    html+="<div class='st-msg st-on'>🟢 Очередь "+onList.join(", ")+" включилась</div>";
+  }
+  document.getElementById(stId).innerHTML=html;
+}
+function upd(){
+  const n=new Date(),nowMs=n.getTime();
+  document.getElementById('clk').textContent="Время: "+n.toTimeString().slice(0,8);
+  const m=n.getMinutes(),cur=n.getHours()*2+(m>=30?1:0),remMin=(m>=30?60-m:30-m);
+  for(let s=0;s<48;s++){
+    document.querySelectorAll('.s'+s).forEach(r=>{
+      r.classList.toggle('cur',s===cur);
+      r.querySelectorAll('td:not(.tc)').forEach(c=>{
+        c.classList.toggle('bn',!ed&&(au?(s===cur&&isOff(c)):c.classList.contains('mb')));
+      });
+    });
+  }
+  document.querySelectorAll('.gi,.ki').forEach(e=>e.classList.toggle('bn',!ed&&(au?e.classList.contains('off'):e.classList.contains('mb'))));
+  updStatus('tb1','st1',cur,remMin,nowMs);
+  updStatus('tb2','st2',cur,remMin,nowMs);
+}
+ldH();updA();upd();setInterval(upd,1000);
+</script>
+</body>
+</html>
