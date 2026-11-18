@@ -14,16 +14,10 @@
   .bdg{background:linear-gradient(135deg,#2980b9,#1f618d);color:#fff;font-weight:bold;font-size:13px;padding:3px 9px;border-radius:5px;letter-spacing:1px}
   .fb{background:#16a085;color:#fff;border:none;padding:4px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:bold}
   .tb{background:var(--th);color:var(--tx);border:1px solid var(--bd);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:bold}
-  .ntf-toggle{background:var(--th);color:var(--tx);border:1px solid var(--bd);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:bold}
-  .ntf-toggle.on{background:#27ae60;color:#fff;border-color:#219150}
   .clk{font-weight:bold;background:var(--cb);padding:4px 8px;border-radius:4px;font-size:12px;color:var(--ct)}
   .ct{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
   .btn{background:#34495e;color:#fff;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold}
   .done{background:#27ae60}.act{background:#e67e22;box-shadow:0 0 0 2px #f39c12 inset}.auto{background:#2980b9}.hid{display:none!important}
-  .ntf-bar{background:linear-gradient(135deg,#1e6bb8,#16a085);color:#fff;padding:10px 12px;border-radius:7px;margin-bottom:10px;max-width:480px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);animation:popIn .3s ease}
-  .ntf-txt{font-size:12px;font-weight:bold;line-height:1.35}
-  .ntf-ok{background:#fff;color:#1b4f72;border:none;padding:5px 10px;border-radius:5px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap}
-  @keyframes popIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
   .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
   .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
   .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:480px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
@@ -36,7 +30,6 @@
   .adm-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
   .adm-lbl{font-size:11px;font-weight:bold;color:#e67e22}
   .rst-btn{background:#c0392b;color:#fff;border:none;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:bold}
-  .snd-btn{background:linear-gradient(135deg,#2980b9,#16a085);color:#fff;border:none;padding:7px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold;text-align:center}
   .wrap{background:var(--card);padding:8px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.18);display:inline-block;max-width:100%}
   .st-box{margin-bottom:8px;display:flex;flex-direction:column;gap:4px;max-width:480px}
   .st-msg{padding:6px 9px;border-radius:5px;font-size:11px;font-weight:bold;line-height:1.35}
@@ -84,8 +77,7 @@
 <div class="top">
   <div class="tg">
     <h2>График отключений</h2><span class="bdg">ГПО</span>
-    <button class="fb" id="famBtn" onclick="copyLink()">🔗 Ссылка на сайт</button>
-    <button class="ntf-toggle" id="ntfBtn" onclick="togPush()">🔔 Уведомления: ВЫКЛ</button>
+    <button class="fb" id="famBtn" onclick="copyLink()">🔗 Ссылка для семьи</button>
     <button class="tb" id="thmBtn" onclick="togThm()">🌙 Тема</button>
   </div>
   <div class="clk" id="clk">Время: 00:00:00</div>
@@ -95,10 +87,6 @@
     <button class="btn hid" id="bA" onclick="togA()">⏱ Авто: ВКЛ</button>
     <button class="btn" id="bE" onclick="togAdm()">🔒 Изменить</button>
   </div>
-</div>
-<div class="ntf-bar hid" id="ntfBar">
-  <div class="ntf-txt">📢 Обновленный график! Посмотрите на изменения</div>
-  <button class="ntf-ok" onclick="closeNtf()">Понятно</button>
 </div>
 <div class="leg">
   <div class="li"><div class="box green"></div> Без отключения</div>
@@ -117,10 +105,6 @@
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
     <div class="adm-top">
-      <span class="adm-lbl">🔒 Оповещение для посетителей:</span>
-    </div>
-    <button class="snd-btn" id="sndBtn" onclick="sendAlertMsg()">📢 Обновленный график! Посмотрите на изменения</button>
-    <div class="adm-top" style="margin-top:4px">
       <span class="adm-lbl">🔒 Доступ к сайту (закрыть для всех):</span>
     </div>
     <select class="srch-in" id="siteSt" onchange="setSiteSt()">
@@ -153,71 +137,8 @@
   </div>
 </div>
 <script>
-const DB_URL="https://firebaseio.com";
-let ed=0,tl='paint',au=1,siteMode="0",alertId="0",lastSynced="";
-let pushOn=(localStorage.getItem('gpo_push')==='1');
+let ed=0,tl='paint',au=1,siteMode="0";
 const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
-
-function updPushBtn(){
-  const b=document.getElementById('ntfBtn');
-  if(!b)return;
-  b.textContent=pushOn?"🔔 Уведомления: ВКЛ":"🔔 Уведомления: ВЫКЛ";
-  b.classList.toggle('on',pushOn);
-}
-function showSilentPush(title,body){
-  if(!pushOn||!("Notification" in window)||Notification.permission!=="granted")return;
-  const opts={body:body,silent:true,tag:"gpo-update",renotify:true};
-  if(navigator.serviceWorker&&navigator.serviceWorker.ready){
-    navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,opts)).catch(()=>new Notification(title,opts));
-  }else{
-    try{new Notification(title,opts);}catch(e){}
-  }
-}
-function togPush(){
-  if(!("Notification" in window)){alert("Ваш браузер не поддерживает уведомления.");return;}
-  if(pushOn){
-    pushOn=false;localStorage.setItem('gpo_push','0');updPushBtn();return;
-  }
-  Notification.requestPermission().then(res=>{
-    if(res==="granted"){
-      pushOn=true;localStorage.setItem('gpo_push','1');updPushBtn();
-      showSilentPush("Уведомления включены","Теперь вы будете получать тихие уведомления об обновлении графика.");
-    }else{
-      alert("Разрешите уведомления в настройках браузера для этого сайта.");
-    }
-  });
-}
-if("serviceWorker" in navigator){
-  const swCode="self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.openWindow(self.registration.scope));});";
-  const blob=new Blob([swCode],{type:'application/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
-}
-updPushBtn();
-
-function sendAlertMsg(){
-  alertId=String(Date.now());
-  svH();
-  const b=document.getElementById('sndBtn');
-  b.textContent="✅ Уведомление отправлено!";
-  setTimeout(()=>{b.textContent="📢 Обновленный график! Посмотрите на изменения";},2500);
-}
-function closeNtf(){
-  document.getElementById('ntfBar').classList.add('hid');
-  try{localStorage.setItem('gpo_seen_alert',alertId);}catch(e){}
-}
-function checkAlert(){
-  if(!ed&&alertId&&alertId!=="0"){
-    let seen="";
-    try{seen=localStorage.getItem('gpo_seen_alert')||"";}catch(e){}
-    if(seen!==alertId){
-      document.getElementById('ntfBar').classList.remove('hid');
-      if(pushOn){
-        showSilentPush("📢 Обновленный график!","Посмотрите на изменения в графике отключений.");
-        try{localStorage.setItem('gpo_seen_alert',alertId);}catch(e){}
-      }
-    }
-  }
-}
 function getRsnText(r,q){
   if(r==="1")return"Эта очередь была отключена из-за резкого напряжения";
   if(r==="2")return"Эта очередь была отключена из-за того, что по этой очереди не пишут новости, поэтому её резко отключили";
@@ -299,47 +220,32 @@ function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
   let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');
-  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode+'_'+alertId;
+  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode;
 }
-function applyCode(h){
-  if(!h||!h.includes('_')||h===lastSynced)return;
-  let prevState=lastSynced;
-  lastSynced=h;
-  let [a,cs,bs,rs,sm,aid]=h.split('_');au=(a==='1');updA();
+function svH(){
+  let code=getCode();
+  history.replaceState(null,'','#'+code);
+  try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
+}
+function ldH(){
+  let h=location.hash.slice(1);
+  if(!h||!h.includes('_')){try{h=localStorage.getItem('gpo_saved_state')||'';}catch(e){}}
+  if(!h||!h.includes('_'))return;
+  let [a,cs,bs,rs,sm]=h.split('_');au=(a==='1');updA();
   siteMode=(sm==='1'||sm==='2')?sm:"0";
-  alertId=aid||"0";
   document.getElementById('siteSt').value=siteMode;
   let cls=['green','yellow','light-red','red'];
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
   document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
   if(rs){qReasons={};ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
-  try{localStorage.setItem('gpo_saved_state',h);}catch(e){}
-  chkRsn();applyLock();checkAlert();
-  if(prevState&&!ed&&pushOn){
-    showSilentPush("График отключений обновлен","Появились новые изменения в расписании очередей.");
-  }
-}
-function svH(){
-  let code=getCode();lastSynced=code;
-  try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
-  fetch(DB_URL,{method:'PUT',body:JSON.stringify(code)}).catch(()=>{});
-}
-function pullCloud(){
-  if(ed)return;
-  fetch(DB_URL+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(typeof d==='string')applyCode(d);}).catch(()=>{});
-}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
-function ldH(){
-  let loc="";try{loc=localStorage.getItem('gpo_saved_state')||'';}catch(e){}
-  if(loc)applyCode(loc);
-  pullCloud();
+  chkRsn();applyLock();svH();
 }
 function copyLink(){
-  let l=location.origin+location.pathname;
+  svH();let l=location.href;
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));
   else prompt("Ссылка:",l);
 }
-function shC(){let b=document.getElementById('famBtn');b.textContent="✅ Скопировано!";setTimeout(()=>{b.textContent="🔗 Ссылка на сайт";},2500);}
+function shC(){let b=document.getElementById('famBtn');b.textContent="✅ Скопировано!";setTimeout(()=>{b.textContent="🔗 Ссылка для семьи";},2500);}
 function isOff(c){return c&&(c.classList.contains('red')||c.classList.contains('light-red')||c.classList.contains('yellow'));}
 function getRow(tb,s){return tb.querySelector('tr.s'+s);}
 function updStatus(tbId,stId,cur,remMin,nowMs){
@@ -403,7 +309,7 @@ function upd(){
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
-ldH();updA();applyLock();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
+ldH();updA();applyLock();upd();setInterval(upd,1000);
 </script>
 </body>
 </html>
