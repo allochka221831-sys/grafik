@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>График отключений ГПО / ГЕО</title>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(sw=>sw.unregister()));}
+</script>
 <style>
   :root{--bg:#f4f6f9;--card:#fff;--tx:#333;--bd:#dcdcdc;--th:#eef2f7;--tc:#f9fafb;--cb:#eef2f7;--ct:#2c3e50;--cub:#d6eaf8;--cut:#1b4f72;--dv:#e5e7eb;--cl:rgba(0,0,0,.78)}
   body.dark{--bg:#12151c;--card:#1c212b;--tx:#e5e9f0;--bd:#323a48;--th:#252c38;--tc:#202632;--cb:#252c38;--ct:#d8dee9;--cub:#1e3a5f;--cut:#88c0d0;--dv:#2e3646;--cl:rgba(0,0,0,.88)}
