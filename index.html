@@ -264,9 +264,8 @@ function svH(){
   const st=document.getElementById('cldSt');
   if(st)st.textContent="⏳ Отправка...";
   fetch("https://firebaseio.com",{
-    method:'PATCH',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({state:code})
+    method:'PUT',
+    body:JSON.stringify(code)
   })
   .then(r=>r.json())
   .then(d=>{
@@ -274,12 +273,12 @@ function svH(){
     if(st)st.textContent="✅ Записано в облако! У всех обновится само";
   })
   .catch(err=>{
-    if(st)st.textContent="❌ Ошибка: "+(err.message||"проверьте интернет");
+    if(st)st.textContent="❌ Ошибка: "+(err.message||"проверьте сеть");
   });
 }
 function pullCloud(){
   if(ed)return;
-  fetch("https://firebaseio.com"+Date.now(),{cache:'no-store'})
+  fetch("https://firebaseio.com?t="+Date.now())
     .then(r=>r.json())
     .then(d=>{if(typeof d==='string')applyCode(d);})
     .catch(()=>{});
