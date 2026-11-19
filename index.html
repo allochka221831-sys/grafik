@@ -350,14 +350,16 @@ ldH();updA();applyLock();upd();setInterval(upd,1000);
 </script>
 <script type="module">
   const st = document.getElementById('cldSt');
+  const cdn = "https://www." + "://gstatic.com";
+  const dbUrl = "https://grafik-mk-default-rtdb." + "firebaseio.com";
   try {
-    const { initializeApp } = await import("https://gstatic.com");
-    const { getDatabase, ref, set, onValue } = await import("https://gstatic.com");
-    const app = initializeApp({ databaseURL: "https://firebaseio.com" });
+    const { initializeApp } = await import(cdn + "firebase-app.js");
+    const { getDatabase, ref, set, onValue } = await import(cdn + "firebase-database.js");
+    const app = initializeApp({ databaseURL: dbUrl });
     const db = getDatabase(app);
     const stRef = ref(db, 'state');
     window._fbSet = (val) => set(stRef, val);
-    if (st) st.textContent = "🟢 База подключена! Кликните на любую клетку";
+    if (st) st.textContent = "🟢 База подключена!";
     if (ed) svH();
     onValue(stRef, (snap) => {
       const d = snap.val();
@@ -366,7 +368,7 @@ ldH();updA();applyLock();upd();setInterval(upd,1000);
       if (st) st.textContent = "❌ Ошибка доступа: " + err.message;
     });
   } catch (e) {
-    if (st) st.textContent = "❌ Скрипт заблокирован: " + e.message;
+    if (st) st.textContent = "❌ Ошибка: " + e.message;
   }
 </script>
 </body>
