@@ -264,7 +264,8 @@ function svH(){
   try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
   const st=document.getElementById('cldSt');
   if(st)st.textContent="⏳ Отправка...";
-  const url=['https:/','://firebaseio.com','state.json'].join('/');
+  const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';
+  const url='https://'+host+'/state.json';
   fetch(url,{method:'PUT',body:JSON.stringify(code)})
     .then(r=>{if(!r.ok)throw new Error('Код '+r.status);return r.json();})
     .then(()=>{if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
@@ -272,12 +273,14 @@ function svH(){
 }
 function pullCloud(){
   if(ed)return;
-  const url=['https:/','://firebaseio.com','state.json?t='+Date.now()].join('/');
+  const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';
+  const url='https://'+host+'/state.json?t='+Date.now();
   fetch(url,{cache:'no-store'})
     .then(r=>r.json())
     .then(d=>{if(typeof d==='string')applyCode(d);})
     .catch(()=>{});
 }
+
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
 function ldH(){
   let loc="";try{loc=localStorage.getItem('gpo_saved_state')||'';}catch(e){}
