@@ -264,18 +264,25 @@ function svH(){
   try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
   const st=document.getElementById('cldSt');
   if(st)st.textContent="⏳ Отправка...";
-  if(window._fbSet){
-    window._fbSet(code)
-      .then(()=>{if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
-      .catch(e=>{if(st)st.textContent="❌ Ошибка SDK: "+(e.message||"сбой");});
-  }else{
-    if(st)st.textContent="⏳ Подключение к базе...";
-  }
+  const url=['https:/','://firebaseio.com','state.json'].join('/');
+  fetch(url,{method:'PUT',body:JSON.stringify(code)})
+    .then(r=>{if(!r.ok)throw new Error('Код '+r.status);return r.json();})
+    .then(()=>{if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
+    .catch(e=>{if(st)st.textContent="❌ Ошибка: "+e.message;});
 }
-function pullCloud(){}
+function pullCloud(){
+  if(ed)return;
+  const url=['https:/','://firebaseio.com','state.json?t='+Date.now()].join('/');
+  fetch(url,{cache:'no-store'})
+    .then(r=>r.json())
+    .then(d=>{if(typeof d==='string')applyCode(d);})
+    .catch(()=>{});
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
 function ldH(){
   let loc="";try{loc=localStorage.getItem('gpo_saved_state')||'';}catch(e){}
   if(loc)applyCode(loc);
+  pullCloud();
 }
 function copyLink(){
   let l=location.origin+location.pathname;
@@ -346,30 +353,7 @@ function upd(){
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
-ldH();updA();applyLock();upd();setInterval(upd,1000);
-</script>
-<script type="module">
-  const st = document.getElementById('cldSt');
-  const cdn = "https://www." + "://gstatic.com";
-  const dbUrl = "https://grafik-mk-default-rtdb." + "firebaseio.com";
-  try {
-    const { initializeApp } = await import(cdn + "firebase-app.js");
-    const { getDatabase, ref, set, onValue } = await import(cdn + "firebase-database.js");
-    const app = initializeApp({ databaseURL: dbUrl });
-    const db = getDatabase(app);
-    const stRef = ref(db, 'state');
-    window._fbSet = (val) => set(stRef, val);
-    if (st) st.textContent = "🟢 База подключена!";
-    if (ed) svH();
-    onValue(stRef, (snap) => {
-      const d = snap.val();
-      if (!ed && typeof d === 'string') applyCode(d);
-    }, (err) => {
-      if (st) st.textContent = "❌ Ошибка доступа: " + err.message;
-    });
-  } catch (e) {
-    if (st) st.textContent = "❌ Ошибка: " + e.message;
-  }
+ldH();updA();applyLock();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
 </script>
 </body>
 </html>
