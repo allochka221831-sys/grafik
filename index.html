@@ -264,32 +264,19 @@ function svH(){
   try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
   const st=document.getElementById('cldSt');
   if(st)st.textContent="⏳ Отправка...";
-  fetch("https://firebaseio.com",{
-    method:'POST',
-    body:JSON.stringify(code)
-  })
-  .then(r=>r.json())
-  .then(d=>{
-    if(!d||d.error)throw new Error(d&&d.error?d.error:"ошибка");
-    if(st)st.textContent="✅ Записано в облако! У всех обновится само";
-  })
-  .catch(err=>{
-    if(st)st.textContent="❌ Ошибка: "+(err.message||"проверьте сеть");
-  });
+  if(window._fbSet){
+    window._fbSet(code)
+      .then(()=>{if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
+      .catch(e=>{if(st)st.textContent="❌ Ошибка SDK: "+(e.message||"сбой");});
+  }else{
+    if(st)st.textContent="⏳ Подключение к базе...";
+  }
 }
-function pullCloud(){
-  if(ed)return;
-  fetch("https://firebaseio.com?orderBy=\"$key\"&limitToLast=1&t="+Date.now())
-    .then(r=>r.json())
-    .then(d=>{
-      if(d&&typeof d==='object'){
-        let keys=Object.keys(d);
-        if(keys.length>0&&typeof d[keys[0]]==='string')applyCode(d[keys[0]]);
-      }
-    })
-    .catch(()=>{});
+function pullCloud(){}
+function ldH(){
+  let loc="";try{loc=localStorage.getItem('gpo_saved_state')||'';}catch(e){}
+  if(loc)applyCode(loc);
 }
-
 function copyLink(){
   let l=location.origin+location.pathname;
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));
@@ -359,7 +346,19 @@ function upd(){
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
-ldH();updA();applyLock();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
+ldH();updA();applyLock();upd();setInterval(upd,1000);
+</script>
+<script type="module">
+  import { initializeApp } from "https://gstatic.com";
+  import { getDatabase, ref, set, onValue } from "https://gstatic.com";
+  const app = initializeApp({ databaseURL: "https://firebaseio.com" });
+  const db = getDatabase(app);
+  const stRef = ref(db, 'state');
+  window._fbSet = (val) => set(stRef, val);
+  onValue(stRef, (snap) => {
+    const d = snap.val();
+    if (!ed && typeof d === 'string') applyCode(d);
+  });
 </script>
 </body>
 </html>
