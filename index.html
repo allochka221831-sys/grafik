@@ -349,16 +349,25 @@ function upd(){
 ldH();updA();applyLock();upd();setInterval(upd,1000);
 </script>
 <script type="module">
-  import { initializeApp } from "https://gstatic.com";
-  import { getDatabase, ref, set, onValue } from "https://gstatic.com";
-  const app = initializeApp({ databaseURL: "https://firebaseio.com" });
-  const db = getDatabase(app);
-  const stRef = ref(db, 'state');
-  window._fbSet = (val) => set(stRef, val);
-  onValue(stRef, (snap) => {
-    const d = snap.val();
-    if (!ed && typeof d === 'string') applyCode(d);
-  });
+  const st = document.getElementById('cldSt');
+  try {
+    const { initializeApp } = await import("https://gstatic.com");
+    const { getDatabase, ref, set, onValue } = await import("https://gstatic.com");
+    const app = initializeApp({ databaseURL: "https://firebaseio.com" });
+    const db = getDatabase(app);
+    const stRef = ref(db, 'state');
+    window._fbSet = (val) => set(stRef, val);
+    if (st) st.textContent = "🟢 База подключена! Кликните на любую клетку";
+    if (ed) svH();
+    onValue(stRef, (snap) => {
+      const d = snap.val();
+      if (!ed && typeof d === 'string') applyCode(d);
+    }, (err) => {
+      if (st) st.textContent = "❌ Ошибка доступа: " + err.message;
+    });
+  } catch (e) {
+    if (st) st.textContent = "❌ Скрипт заблокирован: " + e.message;
+  }
 </script>
 </body>
 </html>
