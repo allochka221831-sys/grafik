@@ -33,6 +33,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   .adm-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
   .adm-lbl{font-size:11px;font-weight:bold;color:#e67e22}
   .rst-btn{background:#c0392b;color:#fff;border:none;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:bold}
+  .cld-st{font-size:11px;font-weight:bold;padding:5px 8px;border-radius:4px;background:#252c38;color:#a9dfbf}
   .wrap{background:var(--card);padding:8px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.18);display:inline-block;max-width:100%}
   .st-box{margin-bottom:8px;display:flex;flex-direction:column;gap:4px;max-width:480px}
   .st-msg{padding:6px 9px;border-radius:5px;font-size:11px;font-weight:bold;line-height:1.35}
@@ -107,7 +108,8 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   </div>
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
-    <div class="adm-top">
+    <div class="cld-st" id="cldSt">☁️ Облако: ожидание...</div>
+    <div class="adm-top" style="margin-top:4px">
       <span class="adm-lbl">🔒 Доступ к сайту (закрыть для всех):</span>
     </div>
     <select class="srch-in" id="siteSt" onchange="setSiteSt()">
@@ -140,6 +142,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   </div>
 </div>
 <script>
+const DB_URL="https://firebaseio.com";
 let ed=0,tl='paint',au=1,siteMode="0",taps=0,tapT=null;
 const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
 let isOwner=(location.search.includes('admin=1')||localStorage.getItem('gpo_owner')==='1');
@@ -243,14 +246,7 @@ function getCode(){
   let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');
   return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode;
 }
-function svH(){
-  let code=getCode();
-  history.replaceState(null,'',location.pathname+'#'+code);
-  try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
-}
-function ldH(){
-  let h=location.hash.slice(1);
-  if(!h||!h.includes('_')){try{h=localStorage.getItem('gpo_saved_state')||'';}catch(e){}}
+function applyCode(h){
   if(!h||!h.includes('_'))return;
   let [a,cs,bs,rs,sm]=h.split('_');au=(a==='1');updA();
   siteMode=(sm==='1'||sm==='2')?sm:"0";
@@ -259,11 +255,30 @@ function ldH(){
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
   document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
   if(rs){qReasons={};ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
-  chkRsn();applyLock();svH();
+  try{localStorage.setItem('gpo_saved_state',h);}catch(e){}
+  chkRsn();applyLock();upd();
+}
+function svH(){
+  let code=getCode();
+  try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
+  const st=document.getElementById('cldSt');
+  if(st)st.textContent="⏳ Отправка...";
+  fetch(DB_URL,{method:'PUT',body:JSON.stringify(code)})
+    .then(r=>{if(!r.ok)throw new Error();if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
+    .catch(()=>{if(st)st.textContent="❌ Ошибка! Откройте правила Firebase и поставьте true";});
+}
+function pullCloud(){
+  if(ed)return;
+  fetch(DB_URL+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(typeof d==='string')applyCode(d);}).catch(()=>{});
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
+function ldH(){
+  let loc="";try{loc=localStorage.getItem('gpo_saved_state')||'';}catch(e){}
+  if(loc)applyCode(loc);
+  pullCloud();
 }
 function copyLink(){
-  let code=getCode();
-  let l=location.origin+location.pathname+'#'+code;
+  let l=location.origin+location.pathname;
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));
   else prompt("Ссылка:",l);
 }
@@ -331,7 +346,7 @@ function upd(){
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
-ldH();updA();applyLock();upd();setInterval(upd,1000);
+ldH();updA();applyLock();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
 </script>
 </body>
 </html>
