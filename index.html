@@ -109,6 +109,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
     <div class="cld-st" id="cldSt">☁️ Облако: ожидание...</div>
+<button class="rst-btn" style="padding:6px 8px;font-size:11px;margin-top:2px" onclick="clearAllTables()">🧹 Очистить всё (ГПО, ГЕО, ГВО, ГКО)</button>
     <div class="adm-top" style="margin-top:4px">
       <span class="adm-lbl">🔒 Доступ к сайту (закрыть для всех):</span>
     </div>
@@ -222,6 +223,14 @@ function setAdmRsn(){
   chkRsn();svH();
 }
 function resetAllRsn(){qReasons={};document.getElementById('admR').value="0";chkRsn();svH();}
+function clearAllTables(){
+  if(!confirm("Очистить все таблицы ГПО, ГЕО и плашки ГВО, ГКО в зеленый?"))return;
+  document.querySelectorAll('td:not(.tc)').forEach(c=>{c.className='green';});
+  document.querySelectorAll('.gi').forEach(b=>{b.className='gi';});
+  document.querySelectorAll('.ki').forEach(b=>{b.className='ki';});
+  svH();upd();
+}
+
 function chkRsn(){
   let q=document.getElementById('qIn').value.trim().replace(',','.'),ask=document.getElementById('qAsk').value,ans=document.getElementById('qAns');
   if(!q||!ask){ans.classList.add('hid');return;}
