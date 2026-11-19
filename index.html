@@ -263,13 +263,26 @@ function svH(){
   try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
   const st=document.getElementById('cldSt');
   if(st)st.textContent="⏳ Отправка...";
-  fetch(DB_URL,{method:'PUT',body:JSON.stringify(code)})
-    .then(r=>{if(!r.ok)throw new Error();if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
-    .catch(()=>{if(st)st.textContent="❌ Ошибка! Откройте правила Firebase и поставьте true";});
+  fetch("https://firebaseio.com",{
+    method:'PATCH',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({state:code})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d&&d.error)throw new Error(d.error);
+    if(st)st.textContent="✅ Записано в облако! У всех обновится само";
+  })
+  .catch(err=>{
+    if(st)st.textContent="❌ Ошибка: "+(err.message||"проверьте интернет");
+  });
 }
 function pullCloud(){
   if(ed)return;
-  fetch(DB_URL+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(typeof d==='string')applyCode(d);}).catch(()=>{});
+  fetch("https://firebaseio.com"+Date.now(),{cache:'no-store'})
+    .then(r=>r.json())
+    .then(d=>{if(typeof d==='string')applyCode(d);})
+    .catch(()=>{});
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
 function ldH(){
