@@ -276,7 +276,10 @@ function cClk(c){
   svH();
 }
 function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classList.toggle('mb');svH();}}
-function dayKey(){return curDay===0?'state':'state_tomorrow';}
+function dayKey(){
+  const d=new Date();d.setDate(d.getDate()+curDay);
+  return 'd_'+d.getFullYear()+'_'+String(d.getMonth()+1).padStart(2,'0')+'_'+String(d.getDate()).padStart(2,'0');
+}
 function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
@@ -284,7 +287,7 @@ function getCode(){
   return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode;
 }
 function applyCode(h){
-  if(!h||!h.includes('_'))return;
+  if(!h||!h.includes('_')){resetGridVisuals();upd();return;}
   let [a,cs,bs,rs,sm]=h.split('_');au=(a==='1');updA();
   siteMode=(sm==='1'||sm==='2')?sm:"0";
   document.getElementById('siteSt').value=siteMode;
@@ -314,15 +317,20 @@ function pullCloud(){
   const url='https://'+host+'/'+dayKey()+'.json?t='+Date.now();
   fetch(url,{cache:'no-store'})
     .then(r=>r.json())
-    .then(d=>{if(typeof d==='string')applyCode(d);})
+    .then(d=>{
+      if(typeof d==='string')applyCode(d);
+      else{resetGridVisuals();try{localStorage.removeItem('gpo_saved_'+dayKey());}catch(e){}upd();}
+    })
     .catch(()=>{});
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
 function ldH(){
+  resetGridVisuals();
   let loc="";try{loc=localStorage.getItem('gpo_saved_'+dayKey())||'';}catch(e){}
   if(loc)applyCode(loc);
   pullCloud();
 }
+
 function copyLink(){
   let l=location.origin+location.pathname;
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));
