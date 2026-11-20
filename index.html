@@ -21,6 +21,9 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   .ct{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
   .btn{background:#34495e;color:#fff;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold}
   .done{background:#27ae60}.act{background:#e67e22;box-shadow:0 0 0 2px #f39c12 inset}.auto{background:#2980b9}.hid{display:none!important}
+  .day-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .dtab{background:var(--card);color:var(--tx);border:2px solid var(--bd);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;transition:.15s}
+  .dtab.on{background:#2980b9;color:#fff;border-color:#1f618d;box-shadow:0 2px 6px rgba(41,128,185,.35)}
   .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
   .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
   .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:480px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
@@ -92,6 +95,10 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
     <button class="btn hid" id="bE" onclick="togAdm()">🔒 Изменить</button>
   </div>
 </div>
+<div class="day-tabs">
+  <button class="dtab on" id="tab0" onclick="swDay(0)">📅 Сегодня</button>
+  <button class="dtab" id="tab1" onclick="swDay(1)">📅 Завтра</button>
+</div>
 <div class="leg">
   <div class="li"><div class="box green"></div> Без отключения</div>
   <div class="li"><div class="box yellow"></div> Возможное включение/отключение</div>
@@ -109,7 +116,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
     <div class="cld-st" id="cldSt">☁️ Облако: ожидание...</div>
-<button class="rst-btn" style="padding:6px 8px;font-size:11px;margin-top:2px" onclick="clearAllTables()">🧹 Очистить всё (ГПО, ГЕО, ГВО, ГКО)</button>
+    <button class="rst-btn" style="padding:6px 8px;font-size:11px;margin-top:2px" onclick="clearAllTables()">🧹 Очистить выбранный день (ГПО, ГЕО, ГВО, ГКО)</button>
     <div class="adm-top" style="margin-top:4px">
       <span class="adm-lbl">🔒 Доступ к сайту (закрыть для всех):</span>
     </div>
@@ -143,10 +150,19 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   </div>
 </div>
 <script>
-const DB_URL="https://firebaseio.com";
-let ed=0,tl='paint',au=1,siteMode="0",taps=0,tapT=null;
+let ed=0,tl='paint',au=1,siteMode="0",taps=0,tapT=null,curDay=0;
 const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
 let isOwner=(location.search.includes('admin=1')||localStorage.getItem('gpo_owner')==='1');
+
+function fmtD(off){
+  const d=new Date();d.setDate(d.getDate()+off);
+  return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
+}
+function updDayLabels(){
+  document.getElementById('tab0').textContent="📅 Сегодня ("+fmtD(0)+")";
+  document.getElementById('tab1').textContent="📅 Завтра ("+fmtD(1)+")";
+}
+updDayLabels();
 
 function showOwnerBtns(){
   isOwner=true;
@@ -158,9 +174,7 @@ function showOwnerBtns(){
 if(isOwner)showOwnerBtns();
 
 function tapSecret(){
-  taps++;
-  clearTimeout(tapT);
-  tapT=setTimeout(()=>{taps=0;},1500);
+  taps++;clearTimeout(tapT);tapT=setTimeout(()=>{taps=0;},1500);
   if(taps>=5){taps=0;showOwnerBtns();}
 }
 
@@ -185,11 +199,28 @@ function mkT(id,qs){
   document.getElementById(id).innerHTML=h+b;
 }
 mkT('tb1',ALL_Q);
-mkT('tb2',["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2"]);
+mkT('tb2',["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1"]);
 let g1="",g2="";
 for(let i=1;i<=19;i++)g1+="<div class='gi' onclick='bClk(this)'>ГВО "+i+"</div>";
 for(let i=1;i<=4;i++)g2+="<div class='ki' onclick='bClk(this)'>ГКО "+i+"</div>";
 document.getElementById('gvo').innerHTML=g1;document.getElementById('gko').innerHTML=g2;
+
+function resetGridVisuals(){
+  document.querySelectorAll('td:not(.tc)').forEach(c=>{c.className='green';});
+  document.querySelectorAll('.gi').forEach(b=>{b.className='gi';});
+  document.querySelectorAll('.ki').forEach(b=>{b.className='ki';});
+  qReasons={};document.getElementById('admR').value="0";
+  prevB.tb1.clear();prevB.tb2.clear();turnedOn.tb1={};turnedOn.tb2={};
+  chkRsn();
+}
+function swDay(d){
+  if(curDay===d)return;
+  curDay=d;
+  document.getElementById('tab0').classList.toggle('on',d===0);
+  document.getElementById('tab1').classList.toggle('on',d===1);
+  resetGridVisuals();
+  ldH();upd();
+}
 function applyLock(){
   const scr=document.getElementById('lockScr');
   if(!ed&&siteMode!=="0"){
@@ -224,13 +255,9 @@ function setAdmRsn(){
 }
 function resetAllRsn(){qReasons={};document.getElementById('admR').value="0";chkRsn();svH();}
 function clearAllTables(){
-  if(!confirm("Очистить все таблицы ГПО, ГЕО и плашки ГВО, ГКО в зеленый?"))return;
-  document.querySelectorAll('td:not(.tc)').forEach(c=>{c.className='green';});
-  document.querySelectorAll('.gi').forEach(b=>{b.className='gi';});
-  document.querySelectorAll('.ki').forEach(b=>{b.className='ki';});
-  svH();upd();
+  if(!confirm("Очистить график на выбранный день в зеленый?"))return;
+  resetGridVisuals();svH();upd();
 }
-
 function chkRsn(){
   let q=document.getElementById('qIn').value.trim().replace(',','.'),ask=document.getElementById('qAsk').value,ans=document.getElementById('qAns');
   if(!q||!ask){ans.classList.add('hid');return;}
@@ -249,6 +276,7 @@ function cClk(c){
   svH();
 }
 function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classList.toggle('mb');svH();}}
+function dayKey(){return curDay===0?'state':'state_tomorrow';}
 function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
@@ -263,18 +291,18 @@ function applyCode(h){
   let cls=['green','yellow','light-red','red'];
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
   document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
-  if(rs){qReasons={};ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
-  try{localStorage.setItem('gpo_saved_state',h);}catch(e){}
+  qReasons={};
+  if(rs){ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
+  try{localStorage.setItem('gpo_saved_'+dayKey(),h);}catch(e){}
   chkRsn();applyLock();upd();
 }
-
 function svH(){
   let code=getCode();
-  try{localStorage.setItem('gpo_saved_state',code);}catch(e){}
+  try{localStorage.setItem('gpo_saved_'+dayKey(),code);}catch(e){}
   const st=document.getElementById('cldSt');
   if(st)st.textContent="⏳ Отправка...";
   const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';
-  const url='https://'+host+'/state.json';
+  const url='https://'+host+'/'+dayKey()+'.json';
   fetch(url,{method:'PUT',body:JSON.stringify(code)})
     .then(r=>{if(!r.ok)throw new Error('Код '+r.status);return r.json();})
     .then(()=>{if(st)st.textContent="✅ Записано в облако! У всех обновится само";})
@@ -283,16 +311,15 @@ function svH(){
 function pullCloud(){
   if(ed)return;
   const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';
-  const url='https://'+host+'/state.json?t='+Date.now();
+  const url='https://'+host+'/'+dayKey()+'.json?t='+Date.now();
   fetch(url,{cache:'no-store'})
     .then(r=>r.json())
     .then(d=>{if(typeof d==='string')applyCode(d);})
     .catch(()=>{});
 }
-
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
 function ldH(){
-  let loc="";try{loc=localStorage.getItem('gpo_saved_state')||'';}catch(e){}
+  let loc="";try{loc=localStorage.getItem('gpo_saved_'+dayKey())||'';}catch(e){}
   if(loc)applyCode(loc);
   pullCloud();
 }
@@ -305,6 +332,7 @@ function shC(){let b=document.getElementById('famBtn');b.textContent="✅ Ско
 function isOff(c){return c&&(c.classList.contains('red')||c.classList.contains('light-red')||c.classList.contains('yellow'));}
 function getRow(tb,s){return tb.querySelector('tr.s'+s);}
 function updStatus(tbId,stId,cur,remMin,nowMs){
+  if(curDay!==0){document.getElementById(stId).innerHTML="";return;}
   const tb=document.getElementById(tbId),curB=new Set();
   tb.querySelectorAll('td.bn').forEach(c=>curB.add(c.textContent.trim()));
   if(!ed){
@@ -355,13 +383,13 @@ function upd(){
   const m=n.getMinutes(),cur=n.getHours()*2+(m>=30?1:0),remMin=(m>=30?60-m:30-m);
   for(let s=0;s<48;s++){
     document.querySelectorAll('.s'+s).forEach(r=>{
-      r.classList.toggle('cur',s===cur);
+      r.classList.toggle('cur',curDay===0&&s===cur);
       r.querySelectorAll('td:not(.tc)').forEach(c=>{
-        c.classList.toggle('bn',!ed&&(au?(s===cur&&isOff(c)):c.classList.contains('mb')));
+        c.classList.toggle('bn',!ed&&(au?(curDay===0&&s===cur&&isOff(c)):c.classList.contains('mb')));
       });
     });
   }
-  document.querySelectorAll('.gi,.ki').forEach(e=>e.classList.toggle('bn',!ed&&(au?e.classList.contains('off'):e.classList.contains('mb'))));
+  document.querySelectorAll('.gi,.ki').forEach(e=>e.classList.toggle('bn',!ed&&(au?(curDay===0&&e.classList.contains('off')):e.classList.contains('mb'))));
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
