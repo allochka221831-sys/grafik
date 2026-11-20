@@ -10,7 +10,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 <style>
   :root{--bg:#f4f6f9;--card:#fff;--tx:#333;--bd:#dcdcdc;--th:#eef2f7;--tc:#f9fafb;--cb:#eef2f7;--ct:#2c3e50;--cub:#d6eaf8;--cut:#1b4f72;--dv:#e5e7eb;--cl:rgba(0,0,0,.78)}
   body.dark{--bg:#12151c;--card:#1c212b;--tx:#e5e9f0;--bd:#323a48;--th:#252c38;--tc:#202632;--cb:#252c38;--ct:#d8dee9;--cub:#1e3a5f;--cut:#88c0d0;--dv:#2e3646;--cl:rgba(0,0,0,.88)}
-  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--tx);padding:10px;transition:.2s}
+  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--tx);padding:10px;transition:.2s;overflow-x:hidden}
   .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
   .tg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   h2{margin:0;color:var(--tx);font-size:16px}
@@ -24,6 +24,10 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   .day-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
   .dtab{background:var(--card);color:var(--tx);border:2px solid var(--bd);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;transition:.15s}
   .dtab.on{background:#2980b9;color:#fff;border-color:#1f618d;box-shadow:0 2px 6px rgba(41,128,185,.35)}
+  .evt-bar{padding:9px 12px;border-radius:7px;margin-bottom:10px;max-width:480px;font-size:12px;font-weight:bold;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.2);color:#fff}
+  .evt-eco{background:linear-gradient(135deg,#d35400,#f39c12)}
+  .evt-bon{background:linear-gradient(135deg,#1e8449,#2ecc71)}
+  .evt-ny{background:linear-gradient(135deg,#1b4f72,#2980b9)}
   .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
   .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
   .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:480px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
@@ -50,10 +54,10 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   td:not(.tc){font-size:9px;font-weight:bold;color:var(--cl);user-select:none;line-height:22px}
   .tc{font-weight:bold;background:var(--tc);width:84px;white-space:nowrap;padding:0 6px;font-size:10px;color:var(--tx)}
   tr.cur .tc{background:var(--cub);color:var(--cut);border-left:3px solid #2980b9}
-  .gvo{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dv)}
+  .gvo{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dv)}
   .gko{display:flex;justify-content:center;gap:6px;margin-top:8px}
   .gi,.ki{background:#82e0aa;color:#143625;font-size:9px;font-weight:bold;text-align:center;padding:6px 4px;border-radius:4px;user-select:none;border:1px solid rgba(0,0,0,.15)}
-  .ki{min-width:48px}.off{background:#e74c3c;color:#fff}
+  .ki{min-width:54px}.off{background:#e74c3c;color:#fff}
   .t2{margin-top:14px;padding-top:12px;border-top:1px solid var(--dv)}
   .green{background:#2ecc71}.yellow{background:#f1c40f}.light-red{background:#f1948a}.red{background:#e74c3c}
   .edit td:not(.tc),.edit .gi,.edit .ki{cursor:pointer}.edit .mb{outline:2px dashed #111;outline-offset:-2px}
@@ -63,6 +67,16 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   .lock-ttl{font-size:20px;font-weight:bold;margin-bottom:8px;color:#f1c40f}
   .lock-txt{font-size:13px;color:#d8dee9;line-height:1.45;margin-bottom:18px}
   .own-btn{background:transparent;color:#6c7a89;border:1px solid #2e3646;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer}
+  .fx-layer{position:fixed;inset:0;pointer-events:none;z-index:9000;overflow:hidden}
+  .fx-p{position:fixed;top:-30px;user-select:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+  .game-box{margin-top:14px;padding-top:10px;border-top:1px dashed var(--bd)}
+  .game-btn{background:linear-gradient(135deg,#8e44ad,#2980b9);color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer}
+  .game-area{margin-top:8px;background:var(--tc);border:1px solid var(--bd);border-radius:8px;padding:10px;max-width:340px}
+  .game-hud{display:flex;justify-content:space-between;font-size:11px;font-weight:bold;margin-bottom:8px}
+  .game-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .gcell{height:46px;background:var(--card);border:1px solid var(--bd);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;user-select:none}
+  .gcell.lit{background:#f1c40f;box-shadow:0 0 12px #f1c40f}
   @keyframes bBlueG{0%,100%{background:#2ecc71;color:var(--cl)}50%{background:#1e6bb8;color:#fff}}
   @keyframes bBlueY{0%,100%{background:#f1c40f;color:var(--cl)}50%{background:#2980b9;color:#fff}}
   @keyframes bBlueL{0%,100%{background:#f1948a;color:var(--cl)}50%{background:#2471a3;color:#fff}}
@@ -73,6 +87,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 </style>
 </head>
 <body>
+<div class="fx-layer" id="fxLayer"></div>
 <div class="lock-scr hid" id="lockScr">
   <div class="lock-card">
     <div class="lock-ico" id="lockIco">⏸</div>
@@ -99,6 +114,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   <button class="dtab on" id="tab0" onclick="swDay(0)">📅 Сегодня</button>
   <button class="dtab" id="tab1" onclick="swDay(1)">📅 Завтра</button>
 </div>
+<div class="evt-bar hid" id="evtBar"></div>
 <div class="leg">
   <div class="li"><div class="box green"></div> Без отключения</div>
   <div class="li"><div class="box yellow"></div> Возможное включение/отключение</div>
@@ -117,6 +133,18 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   <div class="adm-rsn hid" id="admRsn">
     <div class="cld-st" id="cldSt">☁️ Облако: ожидание...</div>
     <button class="rst-btn" style="padding:6px 8px;font-size:11px;margin-top:2px" onclick="clearAllTables()">🧹 Очистить выбранный день (ГПО, ГЕО, ГВО, ГКО)</button>
+    <div class="adm-top" style="margin-top:4px">
+      <span class="adm-lbl">🎉 Ивенты и атмосфера (для всех):</span>
+    </div>
+    <select class="srch-in" id="evtSel" onchange="setEvt()">
+      <option value="0">Обычный режим (без эффектов)</option>
+      <option value="1">❄️ Атмосфера: Снегопад</option>
+      <option value="2">🍂 Атмосфера: Осенний листопад</option>
+      <option value="3">🎆 Атмосфера: Праздничный салют</option>
+      <option value="4">⚡ Баннер: Режим экономии энергии</option>
+      <option value="5">🔋 Баннер: Бонусный час со светом!</option>
+      <option value="6">🎄 Новогодний ивент (Баннер + Снег)</option>
+    </select>
     <div class="adm-top" style="margin-top:4px">
       <span class="adm-lbl">🔒 Доступ к сайту (закрыть для всех):</span>
     </div>
@@ -148,9 +176,20 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
     <div class="st-box" id="st2"></div>
     <table id="tb2"></table>
   </div>
+  <div class="game-box">
+    <button class="game-btn" onclick="togGame()">🎮 Мини-игра без света: Поймай лампочку</button>
+    <div class="game-area hid" id="gameArea">
+      <div class="game-hud">
+        <span>Очки: <b id="gScore">0</b></span>
+        <span>Рекорд: <b id="gBest">0</b></span>
+        <span style="color:#e67e22;cursor:pointer" onclick="startGame()">▶ Старт</span>
+      </div>
+      <div class="game-grid" id="gameGrid"></div>
+    </div>
+  </div>
 </div>
 <script>
-let ed=0,tl='paint',au=1,siteMode="0",taps=0,tapT=null,curDay=0;
+let ed=0,tl='paint',au=1,siteMode="0",evtMode="0",taps=0,tapT=null,curDay=0,fxTimer=null;
 const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
 let isOwner=(location.search.includes('admin=1')||localStorage.getItem('gpo_owner')==='1');
 
@@ -176,6 +215,65 @@ if(isOwner)showOwnerBtns();
 function tapSecret(){
   taps++;clearTimeout(tapT);tapT=setTimeout(()=>{taps=0;},1500);
   if(taps>=5){taps=0;showOwnerBtns();}
+}
+
+function applyEvt(){
+  const bar=document.getElementById('evtBar');
+  const sel=document.getElementById('evtSel');
+  if(sel)sel.value=evtMode;
+  bar.className='evt-bar hid';
+  clearInterval(fxTimer);
+  document.getElementById('fxLayer').innerHTML='';
+  let char="",cls="";
+  if(evtMode==="1"){char="❄️";}
+  else if(evtMode==="2"){char="🍂";}
+  else if(evtMode==="3"){char="✨";}
+  else if(evtMode==="4"){bar.textContent="⚡ Внимание! Включен режим бережного потребления электроэнергии — по возможности выключите лишние приборы.";bar.className="evt-bar evt-eco";}
+  else if(evtMode==="5"){bar.textContent="🔋 Хорошие новости! Действует бонусный час со светом без отключения очередей.";bar.className="evt-bar evt-bon";}
+  else if(evtMode==="6"){char="❄️";bar.textContent="🎄 С наступающими праздниками! Желаем тепла, уюта и стабильного света в каждом доме!";bar.className="evt-bar evt-ny";}
+  if(char){
+    fxTimer=setInterval(()=>{
+      if(document.hidden)return;
+      const p=document.createElement('div');
+      p.className='fx-p';
+      p.textContent=evtMode==="3"?["✨","🎆","🎇"][Math.floor(Math.random()*3)]:char;
+      p.style.left=Math.random()*98+'vw';
+      p.style.fontSize=(12+Math.random()*12)+'px';
+      const dur=4+Math.random()*4;
+      p.style.animationDuration=dur+'s';
+      document.getElementById('fxLayer').appendChild(p);
+      setTimeout(()=>p.remove(),dur*1000);
+    },550);
+  }
+}
+function setEvt(){evtMode=document.getElementById('evtSel').value;applyEvt();svH();}
+
+let gScore=0,gBest=parseInt(localStorage.getItem('gpo_gbest')||'0',10),gLit=-1,gInt=null;
+document.getElementById('gBest').textContent=gBest;
+(function initGame(){
+  const gr=document.getElementById('gameGrid');
+  for(let i=0;i<12;i++){
+    const c=document.createElement('div');c.className='gcell';c.textContent='🔌';
+    c.onclick=()=>{
+      if(i===gLit){
+        gScore++;document.getElementById('gScore').textContent=gScore;
+        if(gScore>gBest){gBest=gScore;localStorage.setItem('gpo_gbest',gBest);document.getElementById('gBest').textContent=gBest;}
+        c.classList.remove('lit');c.textContent='🔌';gLit=-1;
+      }
+    };
+    gr.appendChild(c);
+  }
+})();
+function togGame(){document.getElementById('gameArea').classList.toggle('hid');}
+function startGame(){
+  gScore=0;document.getElementById('gScore').textContent='0';
+  clearInterval(gInt);
+  const cells=document.querySelectorAll('#gameGrid .gcell');
+  gInt=setInterval(()=>{
+    cells.forEach(x=>{x.classList.remove('lit');x.textContent='🔌';});
+    gLit=Math.floor(Math.random()*12);
+    cells[gLit].classList.add('lit');cells[gLit].textContent='💡';
+  },750);
 }
 
 function getRsnText(r,q){
@@ -284,12 +382,13 @@ function getCode(){
   let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
   let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
   let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');
-  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode;
+  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode+'_'+evtMode;
 }
 function applyCode(h){
   if(!h||!h.includes('_')){resetGridVisuals();upd();return;}
-  let [a,cs,bs,rs,sm]=h.split('_');au=(a==='1');updA();
+  let [a,cs,bs,rs,sm,em]=h.split('_');au=(a==='1');updA();
   siteMode=(sm==='1'||sm==='2')?sm:"0";
+  evtMode=em||"0";
   document.getElementById('siteSt').value=siteMode;
   let cls=['green','yellow','light-red','red'];
   document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
@@ -297,7 +396,7 @@ function applyCode(h){
   qReasons={};
   if(rs){ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
   try{localStorage.setItem('gpo_saved_'+dayKey(),h);}catch(e){}
-  chkRsn();applyLock();upd();
+  chkRsn();applyLock();applyEvt();upd();
 }
 function svH(){
   let code=getCode();
@@ -330,7 +429,6 @@ function ldH(){
   if(loc)applyCode(loc);
   pullCloud();
 }
-
 function copyLink(){
   let l=location.origin+location.pathname;
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));
@@ -401,7 +499,7 @@ function upd(){
   updStatus('tb1','st1',cur,remMin,nowMs);
   updStatus('tb2','st2',cur,remMin,nowMs);
 }
-ldH();updA();applyLock();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
+ldH();updA();applyLock();applyEvt();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
 </script>
 </body>
 </html>
