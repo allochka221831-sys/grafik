@@ -139,13 +139,18 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
       <div class="disp-tip" id="dispTip">Анализ нагрузки очередей...</div>
       <div class="ap-row">
         <span>Команда:</span>
-        <select class="ap-sel" id="necCmd" style="flex:1">
-          <option value="0">Автокраска (сбалансировать с нуля)</option>
-          <option value="1">⚡ Усилить на +1 очередь (самые светлые)</option>
-          <option value="2">⚡ Усилить на +2 очереди (самые светлые)</option>
-          <option value="3">⚡ Усилить на +3 очереди (самые светлые)</option>
-          <option value="-1">🟢 Ослабить на -1 очередь (вернуть свет уставшим)</option>
-          <option value="-2">🟢 Ослабить на -2 очереди (вернуть свет уставшим)</option>
+                <select class="ap-sel" id="necCmd" style="flex:1">
+          <option value="0">Автокраска (умный график с нуля)</option>
+          <option value="1">⚡ Усилить на +1 очередь</option>
+          <option value="2">⚡ Усилить на +2 очереди</option>
+          <option value="3">⚡ Усилить на +3 очереди</option>
+          <option value="4">⚡ Усилить на +4 очереди</option>
+          <option value="5">⚡ Усилить на +5 очередей</option>
+          <option value="-1">🟢 Ослабить на -1 очередь</option>
+          <option value="-2">🟢 Ослабить на -2 очереди</option>
+          <option value="-3">🟢 Ослабить на -3 очереди</option>
+          <option value="-4">🟢 Ослабить на -4 очереди</option>
+          <option value="-5">🟢 Ослабить на -5 очередей</option>
         </select>
       </div>
       <div class="ap-row">
@@ -265,38 +270,55 @@ function updDispTip(){
   if(maxQ.slots===0){tip.innerHTML="🟢 Все очереди чистые (0 ч отключений). Выберите время и нажмите <b>Выполнить команду</b>.";return;}
   tip.innerHTML="🔴 <b>Больше всех без света:</b> "+maxQ.q+" ("+fmtSlots(maxQ.slots)+") — лучше снять ей.<br>🟢 <b>Меньше всех без света:</b> "+minQ.q+" ("+fmtSlots(minQ.slots)+") — можно добавить ей.";
 }
+function applyBlockWithYellow(tb,ci,sStart,sEnd,clr){
+  for(let s=sStart;s<sEnd;s++){
+    const c=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci];
+    const isFirst=(s===sStart)&&!isOff(s>0?tb.querySelector('tr.s'+(s-1)).querySelectorAll('td:not(.tc)')[ci]:null);
+    const isLast=(s===sEnd-1)&&!isOff(s<47?tb.querySelector('tr.s'+(s+1)).querySelectorAll('td:not(.tc)')[ci]:null);
+    c.className=(isFirst||isLast)?'yellow':clr;
+  }
+}
 function smartPaintTable(tbId,sFrom,sTo,clr,cmd){
-  const tb=document.getElementById(tbId),cols=tb.querySelector('tr').children.length-1;
+  const tb=document.getElementById(tbId),cols=tb.querySelector('tr').children.length-1,step=4;
   if(cmd===0){
     const shift=Math.floor(Math.random()*cols);
-    for(let s=sFrom;s<sTo;s++){
-      const cells=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)');
-      const block=Math.floor((s-sFrom)/4);
-      cells.forEach((c,ci)=>{
-        const grp=(ci+shift+block*2)%3;
-        if(grp===0){const isEdge=(s===sFrom||s===sTo-1)&&(sTo-sFrom>=3);c.className=isEdge?'yellow':clr;}
-        else{c.className='green';}
-      });
+    for(let bStart=sFrom;bStart<sTo;bStart+=step){
+      const bEnd=Math.min(sTo,bStart+step),blockIdx=Math.floor((bStart-sFrom)/step);
+      for(let ci=0;ci<cols;ci++){
+        if((ci+shift+blockIdx)%3===0)applyBlockWithYellow(tb,ci,bStart,bEnd,clr);
+        else for(let s=bStart;s<bEnd;s++)tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci].className='green';
+      }
     }
   }else if(cmd>0){
-    const stats=getQueueStats(tbId).sort((a,b)=>a.slots-b.slots);
-    for(let s=sFrom;s<sTo;s++){
-      const cells=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)');
+    for(let bStart=sFrom;bStart<sTo;bStart+=step){
+      const bEnd=Math.min(sTo,bStart+step);
+      const stats=getQueueStats(tbId).sort((a,b)=>{
+        const pA=(bStart>0&&isOff(tb.querySelector('tr.s'+(bStart-1)).querySelectorAll('td:not(.tc)')[a.idx]))?2:0;
+        const pB=(bStart>0&&isOff(tb.querySelector('tr.s'+(bStart-1)).querySelectorAll('td:not(.tc)')[b.idx]))?2:0;
+        return (a.slots+pA)-(b.slots+pB);
+      });
       let added=0;
       for(let k=0;k<stats.length&&added<cmd;k++){
-        let ci=stats[k].idx;
-        if(!isOff(cells[ci])){cells[ci].className=clr;stats[k].slots++;added++;}
+        let ci=stats[k].idx,hasFree=false;
+        for(let s=bStart;s<bEnd;s++)if(!isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci]))hasFree=true;
+        if(hasFree){applyBlockWithYellow(tb,ci,bStart,bEnd,clr);added++;}
       }
     }
   }else{
     let remNeed=Math.abs(cmd);
-    const stats=getQueueStats(tbId).sort((a,b)=>b.slots-a.slots);
-    for(let s=sFrom;s<sTo;s++){
-      const cells=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)');
+    for(let bStart=sFrom;bStart<sTo;bStart+=step){
+      const bEnd=Math.min(sTo,bStart+step);
+      const stats=getQueueStats(tbId).sort((a,b)=>b.slots-a.slots);
       let freed=0;
       for(let k=0;k<stats.length&&freed<remNeed;k++){
-        let ci=stats[k].idx;
-        if(isOff(cells[ci])){cells[ci].className='green';stats[k].slots--;freed++;}
+        let ci=stats[k].idx,hasOff=false;
+        for(let s=bStart;s<bEnd;s++)if(isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci]))hasOff=true;
+        if(hasOff){
+          for(let s=bStart;s<bEnd;s++)tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci].className='green';
+          if(bStart>0){const pC=tb.querySelector('tr.s'+(bStart-1)).querySelectorAll('td:not(.tc)')[ci];if(isOff(pC))pC.className='yellow';}
+          if(bEnd<48){const nC=tb.querySelector('tr.s'+bEnd).querySelectorAll('td:not(.tc)')[ci];if(isOff(nC))nC.className='yellow';}
+          freed++;
+        }
       }
     }
   }
