@@ -139,18 +139,18 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
       <div class="disp-tip" id="dispTip">Анализ нагрузки очередей...</div>
       <div class="ap-row">
         <span>Команда:</span>
-                <select class="ap-sel" id="necCmd" style="flex:1">
-          <option value="0">Автокраска (умный график с нуля)</option>
-          <option value="1">⚡ Усилить на +1 очередь</option>
-          <option value="2">⚡ Усилить на +2 очереди</option>
-          <option value="3">⚡ Усилить на +3 очереди</option>
-          <option value="4">⚡ Усилить на +4 очереди</option>
-          <option value="5">⚡ Усилить на +5 очередей</option>
-          <option value="-1">🟢 Ослабить на -1 очередь</option>
-          <option value="-2">🟢 Ослабить на -2 очереди</option>
-          <option value="-3">🟢 Ослабить на -3 очереди</option>
-          <option value="-4">🟢 Ослабить на -4 очереди</option>
-          <option value="-5">🟢 Ослабить на -5 очередей</option>
+        <select class="ap-sel" id="necCmd" style="flex:1">
+          <option value="101">🎯 Ровно 1 очередь (по очереди с ротацией)</option>
+          <option value="102">🎯 Ровно 2 очереди (по очереди с ротацией)</option>
+          <option value="103">🎯 Ровно 3 очереди (по очереди с ротацией)</option>
+          <option value="104">🎯 Ровно 4 очереди (по очереди с ротацией)</option>
+          <option value="105">🎯 Ровно 5 очередей (по очереди с ротацией)</option>
+          <option value="106">🎯 Ровно 6 очередей (по очереди с ротацией)</option>
+          <option value="1">⚡ Добавить +1 очередь к текущему</option>
+          <option value="2">⚡ Добавить +2 очереди к текущему</option>
+          <option value="3">⚡ Добавить +3 очереди к текущему</option>
+          <option value="-1">🟢 Снять -1 очередь с текущего</option>
+          <option value="-2">🟢 Снять -2 очереди с текущего</option>
         </select>
       </div>
       <div class="ap-row">
@@ -252,12 +252,12 @@ function tapSecret(){taps++;clearTimeout(tapT);tapT=setTimeout(()=>{taps=0;},150
   let opts="";
   for(let s=0;s<=48;s++){let hh=String(Math.floor(s/2)).padStart(2,'0'),mm=s%2?"30":"00";opts+="<option value='"+s+"'>"+hh+":"+mm+"</option>";}
   ['apGpoS','apGpoE','apGeoS','apGeoE'].forEach(id=>document.getElementById(id).innerHTML=opts);
-  document.getElementById('apGpoS').value="20";document.getElementById('apGpoE').value="48";
-  document.getElementById('apGeoS').value="20";document.getElementById('apGeoE').value="48";
+  document.getElementById('apGpoS').value="0";document.getElementById('apGpoE').value="12";
+  document.getElementById('apGeoS').value="0";document.getElementById('apGeoE').value="12";
   let dOpts="";
   for(let d=1;d<=24;d++){let h=Math.floor(d/2),m=d%2?"30":"00";dOpts+="<option value='"+d+"'>"+(h>0?h+" ч ":"")+(d%2||h===0?m+" мин":"")+"</option>";}
   ['apDurMin','apDurMax'].forEach(id=>document.getElementById(id).innerHTML=dOpts);
-  document.getElementById('apDurMin').value="4";document.getElementById('apDurMax').value="12";
+  document.getElementById('apDurMin').value="2";document.getElementById('apDurMax').value="5";
 })();
 function getQueueStats(tbId){
   const tb=document.getElementById(tbId);if(!tb)return[];
@@ -275,7 +275,7 @@ function updDispTip(){
   const st=getQueueStats('tb1');if(!st.length)return;
   const sorted=[...st].sort((a,b)=>b.slots-a.slots);
   const maxQ=sorted,minQ=sorted[sorted.length-1];
-  if(maxQ.slots===0){tip.innerHTML="🟢 Все очереди чистые (0 ч отключений). Выберите время, длительность и нажмите <b>Выполнить команду</b>.";return;}
+  if(maxQ.slots===0){tip.innerHTML="🟢 Все очереди чистые (0 ч отключений). Выберите команду, время и нажмите <b>Выполнить команду</b>.";return;}
   tip.innerHTML="🔴 <b>Больше всех без света:</b> "+maxQ.q+" ("+fmtSlots(maxQ.slots)+") — лучше снять ей.<br>🟢 <b>Меньше всех без света:</b> "+minQ.q+" ("+fmtSlots(minQ.slots)+") — можно добавить ей.";
 }
 function paintIntervalCrossDay(tbId,ci,sStart,totalSlots,clr,tomCarry){
@@ -295,14 +295,37 @@ function paintIntervalCrossDay(tbId,ci,sStart,totalSlots,clr,tomCarry){
 function smartPaintTable(tbId,sFrom,sTo,clr,cmd,dMin,dMax,tomCarry){
   const tb=document.getElementById(tbId),cols=tb.querySelector('tr').children.length-1;
   const pickDur=()=>dMin+Math.floor(Math.random()*(Math.max(0,dMax-dMin)+1));
-  if(cmd===0){
-    let s=sFrom,shift=Math.floor(Math.random()*cols),stepIdx=0;
-    while(s<sTo){
-      let dur=pickDur();
-      for(let ci=0;ci<cols;ci++){
-        if((ci+shift+stepIdx)%3===0)paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);
+  if(cmd>=101&&cmd<=106){
+    const targetQ=Math.min(cols,cmd-100);
+    for(let s=sFrom;s<sTo;s++){
+      const cells=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)');
+      cells.forEach(c=>{if(c.className!=='mb')c.className='green';});
+    }
+    const qEnd=new Array(cols).fill(0);
+    const qUsed=new Array(cols).fill(0);
+    for(let s=sFrom;s<sTo;s++){
+      let activeNow=0;
+      for(let ci=0;ci<cols;ci++)if(qEnd[ci]>s)activeNow++;
+      let need=targetQ-activeNow;
+      if(need>0){
+        let cand=[];
+        for(let ci=0;ci<cols;ci++){
+          if(qEnd[ci]<=s){
+            const prevOff=(s>0&&isOff(tb.querySelector('tr.s'+(s-1)).querySelectorAll('td:not(.tc)')[ci]))?1:0;
+            const totalDay=getQueueStats(tbId)[ci].slots;
+            cand.push({ci:ci,score:totalDay*10+qUsed[ci]*5+prevOff*20+Math.random()});
+          }
+        }
+        cand.sort((a,b)=>a.score-b.score);
+        for(let k=0;k<Math.min(need,cand.length);k++){
+          let ci=cand[k].ci;
+          let dur=pickDur();
+          if(s+dur>sTo&&sTo<48)dur=Math.max(1,sTo-s);
+          paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);
+          qEnd[ci]=s+dur;
+          qUsed[ci]++;
+        }
       }
-      s+=dur;stepIdx++;
     }
   }else if(cmd>0){
     let s=sFrom;
