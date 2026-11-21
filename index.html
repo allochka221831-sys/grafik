@@ -172,6 +172,10 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
         </select>
       </div>
       <div class="ap-row">
+        <span>Длительность: от</span><select class="ap-sel" id="apDurMin"></select>
+        <span>до</span><select class="ap-sel" id="apDurMax"></select>
+      </div>
+      <div class="ap-row">
         <button class="ap-go" onclick="runAutoPaint()">✨ Выполнить команду</button>
         <button class="ap-undo hid" id="apUndo" onclick="undoAutoPaint()">↩️ Отменить</button>
       </div>
@@ -248,8 +252,12 @@ function tapSecret(){taps++;clearTimeout(tapT);tapT=setTimeout(()=>{taps=0;},150
   let opts="";
   for(let s=0;s<=48;s++){let hh=String(Math.floor(s/2)).padStart(2,'0'),mm=s%2?"30":"00";opts+="<option value='"+s+"'>"+hh+":"+mm+"</option>";}
   ['apGpoS','apGpoE','apGeoS','apGeoE'].forEach(id=>document.getElementById(id).innerHTML=opts);
-  document.getElementById('apGpoS').value="20";document.getElementById('apGpoE').value="28";
-  document.getElementById('apGeoS').value="20";document.getElementById('apGeoE').value="30";
+  document.getElementById('apGpoS').value="20";document.getElementById('apGpoE').value="48";
+  document.getElementById('apGeoS').value="20";document.getElementById('apGeoE').value="48";
+  let dOpts="";
+  for(let d=1;d<=24;d++){let h=Math.floor(d/2),m=d%2?"30":"00";dOpts+="<option value='"+d+"'>"+(h>0?h+" ч ":"")+(d%2||h===0?m+" мин":"")+"</option>";}
+  ['apDurMin','apDurMax'].forEach(id=>document.getElementById(id).innerHTML=dOpts);
+  document.getElementById('apDurMin').value="4";document.getElementById('apDurMax').value="12";
 })();
 function getQueueStats(tbId){
   const tb=document.getElementById(tbId);if(!tb)return[];
@@ -267,76 +275,112 @@ function updDispTip(){
   const st=getQueueStats('tb1');if(!st.length)return;
   const sorted=[...st].sort((a,b)=>b.slots-a.slots);
   const maxQ=sorted,minQ=sorted[sorted.length-1];
-  if(maxQ.slots===0){tip.innerHTML="🟢 Все очереди чистые (0 ч отключений). Выберите время и нажмите <b>Выполнить команду</b>.";return;}
+  if(maxQ.slots===0){tip.innerHTML="🟢 Все очереди чистые (0 ч отключений). Выберите время, длительность и нажмите <b>Выполнить команду</b>.";return;}
   tip.innerHTML="🔴 <b>Больше всех без света:</b> "+maxQ.q+" ("+fmtSlots(maxQ.slots)+") — лучше снять ей.<br>🟢 <b>Меньше всех без света:</b> "+minQ.q+" ("+fmtSlots(minQ.slots)+") — можно добавить ей.";
 }
-function applyBlockWithYellow(tb,ci,sStart,sEnd,clr){
+function paintIntervalCrossDay(tbId,ci,sStart,totalSlots,clr,tomCarry){
+  const tb=document.getElementById(tbId);
+  const sEnd=Math.min(48,sStart+totalSlots);
+  const overflow=(sStart+totalSlots)-48;
   for(let s=sStart;s<sEnd;s++){
     const c=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci];
     const isFirst=(s===sStart)&&!isOff(s>0?tb.querySelector('tr.s'+(s-1)).querySelectorAll('td:not(.tc)')[ci]:null);
-    const isLast=(s===sEnd-1)&&!isOff(s<47?tb.querySelector('tr.s'+(s+1)).querySelectorAll('td:not(.tc)')[ci]:null);
+    const isLast=(s===sEnd-1)&&overflow<=0&&!isOff(s<47?tb.querySelector('tr.s'+(s+1)).querySelectorAll('td:not(.tc)')[ci]:null);
     c.className=(isFirst||isLast)?'yellow':clr;
   }
+  if(overflow>0&&curDay===0){
+    tomCarry.push({tbId:tbId,ci:ci,slots:Math.min(48,overflow),clr:clr});
+  }
 }
-function smartPaintTable(tbId,sFrom,sTo,clr,cmd){
-  const tb=document.getElementById(tbId),cols=tb.querySelector('tr').children.length-1,step=4;
+function smartPaintTable(tbId,sFrom,sTo,clr,cmd,dMin,dMax,tomCarry){
+  const tb=document.getElementById(tbId),cols=tb.querySelector('tr').children.length-1;
+  const pickDur=()=>dMin+Math.floor(Math.random()*(Math.max(0,dMax-dMin)+1));
   if(cmd===0){
-    const shift=Math.floor(Math.random()*cols);
-    for(let bStart=sFrom;bStart<sTo;bStart+=step){
-      const bEnd=Math.min(sTo,bStart+step),blockIdx=Math.floor((bStart-sFrom)/step);
+    let s=sFrom,shift=Math.floor(Math.random()*cols),stepIdx=0;
+    while(s<sTo){
+      let dur=pickDur();
       for(let ci=0;ci<cols;ci++){
-        if((ci+shift+blockIdx)%3===0)applyBlockWithYellow(tb,ci,bStart,bEnd,clr);
-        else for(let s=bStart;s<bEnd;s++)tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci].className='green';
+        if((ci+shift+stepIdx)%3===0)paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);
       }
+      s+=dur;stepIdx++;
     }
   }else if(cmd>0){
-    for(let bStart=sFrom;bStart<sTo;bStart+=step){
-      const bEnd=Math.min(sTo,bStart+step);
+    let s=sFrom;
+    while(s<sTo){
+      let dur=pickDur();
       const stats=getQueueStats(tbId).sort((a,b)=>{
-        const pA=(bStart>0&&isOff(tb.querySelector('tr.s'+(bStart-1)).querySelectorAll('td:not(.tc)')[a.idx]))?2:0;
-        const pB=(bStart>0&&isOff(tb.querySelector('tr.s'+(bStart-1)).querySelectorAll('td:not(.tc)')[b.idx]))?2:0;
+        const pA=(s>0&&isOff(tb.querySelector('tr.s'+(s-1)).querySelectorAll('td:not(.tc)')[a.idx]))?3:0;
+        const pB=(s>0&&isOff(tb.querySelector('tr.s'+(s-1)).querySelectorAll('td:not(.tc)')[b.idx]))?3:0;
         return (a.slots+pA)-(b.slots+pB);
       });
       let added=0;
       for(let k=0;k<stats.length&&added<cmd;k++){
-        let ci=stats[k].idx,hasFree=false;
-        for(let s=bStart;s<bEnd;s++)if(!isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci]))hasFree=true;
-        if(hasFree){applyBlockWithYellow(tb,ci,bStart,bEnd,clr);added++;}
+        let ci=stats[k].idx;
+        if(!isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci])){
+          paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);
+          stats[k].slots+=dur;added++;
+        }
       }
+      s+=dur;
     }
   }else{
-    let remNeed=Math.abs(cmd);
-    for(let bStart=sFrom;bStart<sTo;bStart+=step){
-      const bEnd=Math.min(sTo,bStart+step);
+    let remNeed=Math.abs(cmd),s=sFrom;
+    while(s<sTo){
+      let dur=pickDur(),sEnd=Math.min(48,s+dur);
       const stats=getQueueStats(tbId).sort((a,b)=>b.slots-a.slots);
       let freed=0;
       for(let k=0;k<stats.length&&freed<remNeed;k++){
         let ci=stats[k].idx,hasOff=false;
-        for(let s=bStart;s<bEnd;s++)if(isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci]))hasOff=true;
+        for(let x=s;x<sEnd;x++)if(isOff(tb.querySelector('tr.s'+x).querySelectorAll('td:not(.tc)')[ci]))hasOff=true;
         if(hasOff){
-          for(let s=bStart;s<bEnd;s++)tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci].className='green';
-          if(bStart>0){const pC=tb.querySelector('tr.s'+(bStart-1)).querySelectorAll('td:not(.tc)')[ci];if(isOff(pC))pC.className='yellow';}
-          if(bEnd<48){const nC=tb.querySelector('tr.s'+bEnd).querySelectorAll('td:not(.tc)')[ci];if(isOff(nC))nC.className='yellow';}
+          for(let x=s;x<sEnd;x++)tb.querySelector('tr.s'+x).querySelectorAll('td:not(.tc)')[ci].className='green';
+          if(s>0){const pC=tb.querySelector('tr.s'+(s-1)).querySelectorAll('td:not(.tc)')[ci];if(isOff(pC))pC.className='yellow';}
+          if(sEnd<48){const nC=tb.querySelector('tr.s'+sEnd).querySelectorAll('td:not(.tc)')[ci];if(isOff(nC))nC.className='yellow';}
           freed++;
         }
       }
+      s+=dur;
     }
   }
 }
+function saveTomorrowCarry(tomCarry){
+  if(!tomCarry.length)return;
+  const d=new Date();d.setDate(d.getDate()+1);
+  const tKey='d_'+d.getFullYear()+'_'+String(d.getMonth()+1).padStart(2,'0')+'_'+String(d.getDate()).padStart(2,'0');
+  const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';
+  fetch('https://'+host+'/'+tKey+'.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(raw=>{
+    const tmp=document.createElement('div');
+    tmp.innerHTML="<table id='t_tb1'>"+document.getElementById('tb1').innerHTML+"</table><table id='t_tb2'>"+document.getElementById('tb2').innerHTML+"</table>";
+    tmp.querySelectorAll('td:not(.tc)').forEach(c=>c.className='green');
+    if(typeof raw==='string'&&raw.includes('_')){
+      let cs=raw.split('_')||'';
+      let cls=['green','yellow','light-red','red'];
+      tmp.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
+    }
+    tomCarry.forEach(item=>{
+      const tTb=tmp.querySelector('#t_'+item.tbId);
+      for(let s=0;s<item.slots;s++){
+        const c=tTb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[item.ci];
+        c.className=(s===item.slots-1)?'yellow':item.clr;
+      }
+    });
+    let newCs=[...tmp.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
+    let curParts=getCode().split('_');
+    let tomCode='1_'+newCs+'_'+curParts+'_000000000000_'+curParts+'_'+curParts;
+    try{localStorage.setItem('gpo_saved_'+tKey,tomCode);}catch(e){}
+    fetch('https://'+host+'/'+tKey+'.json',{method:'PUT',body:JSON.stringify(tomCode)});
+  });
+}
 function runAutoPaint(){
   apBackup=getCode();
-  const clr=document.getElementById('apClr').value;
-  const cmd=parseInt(document.getElementById('necCmd').value,10);
-  if(document.getElementById('apGpoOn').checked){
-    let s1=parseInt(document.getElementById('apGpoS').value,10),e1=parseInt(document.getElementById('apGpoE').value,10);
-    if(e1>s1)smartPaintTable('tb1',s1,e1,clr,cmd);
-  }
-  if(document.getElementById('apGeoOn').checked){
-    let s2=parseInt(document.getElementById('apGeoS').value,10),e2=parseInt(document.getElementById('apGeoE').value,10);
-    if(e2>s2)smartPaintTable('tb2',s2,e2,clr,cmd);
-  }
-  document.getElementById('apUndo').classList.remove('hid');
-  svH();upd();
+  const clr=document.getElementById('apClr').value,cmd=parseInt(document.getElementById('necCmd').value,10);
+  let dMin=parseInt(document.getElementById('apDurMin').value,10),dMax=parseInt(document.getElementById('apDurMax').value,10);
+  if(dMax<dMin)dMax=dMin;
+  let tomCarry=[];
+  if(document.getElementById('apGpoOn').checked){let s1=parseInt(document.getElementById('apGpoS').value,10),e1=parseInt(document.getElementById('apGpoE').value,10);if(e1>s1)smartPaintTable('tb1',s1,e1,clr,cmd,dMin,dMax,tomCarry);}
+  if(document.getElementById('apGeoOn').checked){let s2=parseInt(document.getElementById('apGeoS').value,10),e2=parseInt(document.getElementById('apGeoE').value,10);if(e2>s2)smartPaintTable('tb2',s2,e2,clr,cmd,dMin,dMax,tomCarry);}
+  if(tomCarry.length>0)saveTomorrowCarry(tomCarry);
+  document.getElementById('apUndo').classList.remove('hid');svH();upd();
 }
 function undoAutoPaint(){if(apBackup){applyCode(apBackup);svH();document.getElementById('apUndo').classList.add('hid');}}
 function applyEvt(){
