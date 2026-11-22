@@ -13,6 +13,9 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   body{font-family:Arial,sans-serif;background:var(--bg);color:var(--tx);padding:10px;transition:.2s;overflow-x:hidden}
   .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
   .tg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .t-col{display:flex;flex-direction:column}
+  .sub-lbl{font-size:11px;color:#6c7a89;font-weight:normal;margin-top:1px}
+  body.dark .sub-lbl{color:#9aa5b4}
   h2{margin:0;color:var(--tx);font-size:16px}
   .bdg{background:linear-gradient(135deg,#2980b9,#1f618d);color:#fff;font-weight:bold;font-size:13px;padding:3px 9px;border-radius:5px;letter-spacing:1px;user-select:none}
   .fb{background:#16a085;color:#fff;border:none;padding:4px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:bold}
@@ -26,8 +29,8 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   .dtab.on{background:#2980b9;color:#fff;border-color:#1f618d;box-shadow:0 2px 6px rgba(41,128,185,.35)}
   .evt-bar{padding:9px 12px;border-radius:7px;margin-bottom:10px;max-width:480px;font-size:12px;font-weight:bold;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.2);color:#fff}
   .evt-eco{background:linear-gradient(135deg,#d35400,#f39c12)}.evt-bon{background:linear-gradient(135deg,#1e8449,#2ecc71)}.evt-ny{background:linear-gradient(135deg,#1b4f72,#2980b9)}
-  .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap}
-  .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd)}
+  .leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap;max-width:540px}
+  .li{display:flex;align-items:center;gap:4px}.box{width:13px;height:13px;border-radius:2px;border:1px solid var(--bd);flex-shrink:0}
   .srch-box{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:9px;margin-bottom:10px;max-width:480px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
   .srch-row{display:flex;flex-direction:column;gap:6px}
   .srch-in{padding:6px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--tc);color:var(--tx);font-size:12px;font-weight:bold;width:100%;box-sizing:border-box}
@@ -55,13 +58,14 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   td:not(.tc){font-size:9px;font-weight:bold;color:var(--cl);user-select:none;line-height:22px}
   .tc{font-weight:bold;background:var(--tc);width:84px;white-space:nowrap;padding:0 6px;font-size:10px;color:var(--tx)}
   tr.cur .tc{background:var(--cub);color:var(--cut);border-left:3px solid #2980b9}
-  .gvo{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dv)}
-  .gko{display:flex;justify-content:center;gap:6px;margin-top:8px}
-  .gi,.ki{background:#82e0aa;color:#143625;font-size:9px;font-weight:bold;text-align:center;padding:6px 4px;border-radius:4px;user-select:none;border:1px solid rgba(0,0,0,.15)}
-  .ki{min-width:54px}.off{background:#e74c3c;color:#fff}
+  .sec-ttl{font-size:11px;font-weight:bold;text-align:center;margin-top:12px;margin-bottom:6px;padding-top:9px;border-top:1px solid var(--dv);letter-spacing:.4px;color:var(--tx)}
+  .gvo{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+  .gko,.gao,.sgao{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+  .gi,.ki,.ai,.si{background:#82e0aa;color:#143625;font-size:9px;font-weight:bold;text-align:center;padding:6px 6px;border-radius:4px;user-select:none;border:1px solid rgba(0,0,0,.15)}
+  .ki,.ai{min-width:58px}.si{min-width:90px;font-size:10px}.off{background:#e74c3c;color:#fff}
   .t2{margin-top:14px;padding-top:12px;border-top:1px solid var(--dv)}
-  .green{background:#2ecc71}.yellow{background:#f1c40f}.light-red{background:#f1948a}.red{background:#e74c3c}
-  .edit td:not(.tc),.edit .gi,.edit .ki{cursor:pointer}.edit .mb{outline:2px dashed #111;outline-offset:-2px}
+  .green{background:#2ecc71}.yellow{background:#f1c40f}.light-red{background:#f1948a}.red{background:#e74c3c}.dark-red{background:#6e1414;color:#fff!important}
+  .edit td:not(.tc),.edit .gi,.edit .ki,.edit .ai,.edit .si{cursor:pointer}.edit .mb{outline:2px dashed #111;outline-offset:-2px}
   .lock-scr{position:fixed;inset:0;background:#12151c;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;z-index:9999}
   .lock-card{background:#1c212b;border:1px solid #323a48;border-radius:12px;padding:24px 20px;max-width:380px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.4)}
   .lock-ico{font-size:42px;margin-bottom:10px}.lock-ttl{font-size:20px;font-weight:bold;margin-bottom:8px;color:#f1c40f}.lock-txt{font-size:13px;color:#d8dee9;line-height:1.45;margin-bottom:18px}
@@ -82,9 +86,12 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   @keyframes bBlueY{0%,100%{background:#f1c40f;color:var(--cl)}50%{background:#2980b9;color:#fff}}
   @keyframes bBlueL{0%,100%{background:#f1948a;color:var(--cl)}50%{background:#2471a3;color:#fff}}
   @keyframes bBlueR{0%,100%{background:#e74c3c;color:#fff}50%{background:#1b5fa7;color:#fff}}
+  @keyframes bBlueDR{0%,100%{background:#6e1414;color:#fff}50%{background:#1b4f72;color:#fff}}
   @keyframes bBlueB{0%,100%{background:#82e0aa;color:#143625}50%{background:#2980b9;color:#fff}}
-  .green.bn{animation:bBlueG 1s infinite}.yellow.bn{animation:bBlueY 1s infinite}.light-red.bn{animation:bBlueL 1s infinite}
-  .red.bn,.off.bn{animation:bBlueR 1s infinite}.gi.bn:not(.off),.ki.bn:not(.off){animation:bBlueB 1s infinite}
+  .green.bn{animation:bBlueG 1.1s infinite}.yellow.bn{animation:bBlueY 1.1s infinite}
+  .light-red.bn{animation:bBlueL 1.7s infinite}.red.bn,.off.bn{animation:bBlueR 0.9s infinite}
+  .dark-red.bn{animation:bBlueDR 2.8s infinite}
+  .gi.bn:not(.off),.ki.bn:not(.off),.ai.bn:not(.off),.si.bn:not(.off){animation:bBlueB 1.1s infinite}
 </style>
 </head>
 <body>
@@ -99,7 +106,8 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 </div>
 <div class="top">
   <div class="tg">
-    <h2>График отключений</h2><span class="bdg" id="gpoBadge" onclick="tapSecret()">ГПО</span>
+    <div class="t-col"><h2>График отключений</h2><span class="sub-lbl">(График почасовых отключений)</span></div>
+    <span class="bdg" id="gpoBadge" onclick="tapSecret()">ГПО</span>
     <button class="fb hid" id="famBtn" onclick="copyLink()">🔗 Ссылка для семьи</button>
     <button class="tb" id="thmBtn" onclick="togThm()">🌙 Тема</button>
   </div>
@@ -121,6 +129,8 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   <div class="li"><div class="box yellow"></div> Возможное включение/отключение</div>
   <div class="li"><div class="box light-red"></div> Запланированное отключение</div>
   <div class="li"><div class="box red"></div> Добавленное отключение</div>
+  <div class="li"><div class="box dark-red"></div> 100% отключение (о включении и речи не идёт)</div>
+  <div class="li"><div class="box red bn"></div> Очередь отключена</div>
 </div>
 <div class="srch-box">
   <div class="srch-row">
@@ -133,7 +143,26 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
   <div class="srch-ans ans-unk hid" id="qAns">Неизвестно</div>
   <div class="adm-rsn hid" id="admRsn">
     <div class="cld-st" id="cldSt">☁️ Облако: ожидание...</div>
-    <button class="rst-btn" style="padding:6px 8px;font-size:11px;margin-top:2px" onclick="clearAllTables()">🧹 Очистить выбранный день (ГПО, ГЕО, ГВО, ГКО)</button>
+    <button class="rst-btn" style="padding:6px 8px;font-size:11px;margin-top:2px" onclick="clearAllTables()">🧹 Очистить выбранный день (все таблицы и кнопки)</button>
+    <div class="ap-box">
+      <span class="adm-lbl">⏱ Мигание по времени (расписание мигания):</span>
+      <div class="ap-row">
+        <label><input type="checkbox" id="tbOn" onchange="saveTb()"> Вкл</label>
+        <span>с</span><select class="ap-sel" id="tbS" onchange="saveTb()"></select>
+        <span>до</span><select class="ap-sel" id="tbE" onchange="saveTb()"></select>
+      </div>
+      <div class="ap-row">
+        <label><input type="checkbox" id="tbGpo" checked onchange="saveTb()"> ГПО</label>
+        <label><input type="checkbox" id="tbGeo" checked onchange="saveTb()"> ГЕО</label>
+        <label><input type="checkbox" id="tbGvo" checked onchange="saveTb()"> ГВО</label>
+        <label><input type="checkbox" id="tbGko" checked onchange="saveTb()"> ГКО</label>
+        <label><input type="checkbox" id="tbGao" checked onchange="saveTb()"> ГАО</label>
+        <label><input type="checkbox" id="tbSgao" checked onchange="saveTb()"> СГАО</label>
+      </div>
+      <div class="ap-row">
+        <input class="srch-in" id="tbQ" type="text" placeholder="Очереди (пусто = все, или 1.1, 2.2)" oninput="saveTb()">
+      </div>
+    </div>
     <div class="ap-box">
       <span class="adm-lbl">🧠 Умный диспетчер НЭК Укрэнерго:</span>
       <div class="disp-tip" id="dispTip">Анализ нагрузки очередей...</div>
@@ -168,6 +197,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
         <select class="ap-sel" id="apClr">
           <option value="light-red">Светло-красный (по графику)</option>
           <option value="red">Красный (добавленное)</option>
+          <option value="dark-red">Тёмно-красный (100% отключение)</option>
           <option value="yellow">Жёлтый (возможное)</option>
         </select>
       </div>
@@ -219,27 +249,33 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 <div class="wrap" id="wr">
   <div class="st-box" id="st1"></div>
   <table id="tb1"></table>
+  <div class="sec-ttl">АВАРИЙНЫЕ ОТКЛЮЧЕНИЯ</div>
   <div class="gvo" id="gvo"></div>
+  <div class="sec-ttl">ОЧЕРЕДИ КРИТИЧЕСКИХ АВАРИЙНЫХ ОТКЛЮЧЕНИЙ</div>
   <div class="gko" id="gko"></div>
+  <div class="sec-ttl">ОЧЕРЕДИ ГЛОБАЛЬНЫХ АБСОЛЮТНЫХ ОТКЛЮЧЕНИЙ</div>
+  <div class="gao" id="gao"></div>
+  <div class="sec-ttl">СПЛОШНОЕ ГЛОБАЛЬНОЕ АБСОЛЮТНОЕ ОТКЛЮЧЕНИЕ</div>
+  <div class="sgao" id="sgao"></div>
   <div class="t2">
-    <div class="tg" style="margin-bottom:8px"><h2>График отключений</h2><span class="bdg">ГЕО</span></div>
+    <div class="tg" style="margin-bottom:8px">
+      <div class="t-col"><h2>График отключений</h2><span class="sub-lbl">(График почасовых отключений)</span></div>
+      <span class="bdg">ГЕО</span>
+    </div>
     <div class="st-box" id="st2"></div>
     <table id="tb2"></table>
   </div>
   <div class="game-box">
     <button class="game-btn" onclick="togGame()">🎮 Мини-игра без света: Поймай лампочку</button>
     <div class="game-area hid" id="gameArea">
-      <div class="game-hud">
-        <span>Очки: <b id="gScore">0</b></span>
-        <span>Рекорд: <b id="gBest">0</b></span>
-        <span style="color:#e67e22;cursor:pointer" onclick="startGame()">▶ Старт</span>
-      </div>
+      <div class="game-hud"><span>Очки: <b id="gScore">0</b></span><span>Рекорд: <b id="gBest">0</b></span><span style="color:#e67e22;cursor:pointer" onclick="startGame()">▶ Старт</span></div>
       <div class="game-grid" id="gameGrid"></div>
     </div>
   </div>
 </div>
 <script>
 let ed=0,tl='paint',au=1,siteMode="0",evtMode="0",taps=0,tapT=null,curDay=0,fxTimer=null,apBackup="";
+let tbCfg={on:0,s:26,e:32,mask:"111111",q:""};
 const ALL_Q=["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2","6.1","6.2"];
 let isOwner=(location.search.includes('admin=1')||localStorage.getItem('gpo_owner')==='1');
 function fmtD(o){const d=new Date();d.setDate(d.getDate()+o);return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();}
@@ -251,14 +287,30 @@ function tapSecret(){taps++;clearTimeout(tapT);tapT=setTimeout(()=>{taps=0;},150
 (function fillApTimes(){
   let opts="";
   for(let s=0;s<=48;s++){let hh=String(Math.floor(s/2)).padStart(2,'0'),mm=s%2?"30":"00";opts+="<option value='"+s+"'>"+hh+":"+mm+"</option>";}
-  ['apGpoS','apGpoE','apGeoS','apGeoE'].forEach(id=>document.getElementById(id).innerHTML=opts);
+  ['apGpoS','apGpoE','apGeoS','apGeoE','tbS','tbE'].forEach(id=>document.getElementById(id).innerHTML=opts);
   document.getElementById('apGpoS').value="0";document.getElementById('apGpoE').value="12";
   document.getElementById('apGeoS').value="0";document.getElementById('apGeoE').value="12";
+  document.getElementById('tbS').value="26";document.getElementById('tbE').value="32";
   let dOpts="";
   for(let d=1;d<=24;d++){let h=Math.floor(d/2),m=d%2?"30":"00";dOpts+="<option value='"+d+"'>"+(h>0?h+" ч ":"")+(d%2||h===0?m+" мин":"")+"</option>";}
   ['apDurMin','apDurMax'].forEach(id=>document.getElementById(id).innerHTML=dOpts);
   document.getElementById('apDurMin').value="2";document.getElementById('apDurMax').value="5";
 })();
+function syncTbUi(){
+  document.getElementById('tbOn').checked=!!tbCfg.on;
+  document.getElementById('tbS').value=String(tbCfg.s);
+  document.getElementById('tbE').value=String(tbCfg.e);
+  ['tbGpo','tbGeo','tbGvo','tbGko','tbGao','tbSgao'].forEach((id,i)=>{document.getElementById(id).checked=(tbCfg.mask[i]==='1');});
+  document.getElementById('tbQ').value=tbCfg.q;
+}
+function saveTb(){
+  tbCfg.on=document.getElementById('tbOn').checked?1:0;
+  tbCfg.s=parseInt(document.getElementById('tbS').value,10);
+  tbCfg.e=parseInt(document.getElementById('tbE').value,10);
+  tbCfg.mask=['tbGpo','tbGeo','tbGvo','tbGko','tbGao','tbSgao'].map(id=>document.getElementById(id).checked?'1':'0').join('');
+  tbCfg.q=document.getElementById('tbQ').value.replace(/[_-]/g,'').trim();
+  svH();upd();
+}
 function getQueueStats(tbId){
   const tb=document.getElementById(tbId);if(!tb)return[];
   const hdr=[...tb.querySelectorAll('th:not(.tc)')].map(th=>th.textContent.trim());
@@ -288,24 +340,17 @@ function paintIntervalCrossDay(tbId,ci,sStart,totalSlots,clr,tomCarry){
     const isLast=(s===sEnd-1)&&overflow<=0&&!isOff(s<47?tb.querySelector('tr.s'+(s+1)).querySelectorAll('td:not(.tc)')[ci]:null);
     c.className=(isFirst||isLast)?'yellow':clr;
   }
-  if(overflow>0&&curDay===0){
-    tomCarry.push({tbId:tbId,ci:ci,slots:Math.min(48,overflow),clr:clr});
-  }
+  if(overflow>0&&curDay===0){tomCarry.push({tbId:tbId,ci:ci,slots:Math.min(48,overflow),clr:clr});}
 }
 function smartPaintTable(tbId,sFrom,sTo,clr,cmd,dMin,dMax,tomCarry){
   const tb=document.getElementById(tbId),cols=tb.querySelector('tr').children.length-1;
   const pickDur=()=>dMin+Math.floor(Math.random()*(Math.max(0,dMax-dMin)+1));
   if(cmd>=101&&cmd<=106){
     const targetQ=Math.min(cols,cmd-100);
+    for(let s=sFrom;s<sTo;s++)tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)').forEach(c=>{if(c.className!=='mb')c.className='green';});
+    const qEnd=new Array(cols).fill(0),qUsed=new Array(cols).fill(0);
     for(let s=sFrom;s<sTo;s++){
-      const cells=tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)');
-      cells.forEach(c=>{if(c.className!=='mb')c.className='green';});
-    }
-    const qEnd=new Array(cols).fill(0);
-    const qUsed=new Array(cols).fill(0);
-    for(let s=sFrom;s<sTo;s++){
-      let activeNow=0;
-      for(let ci=0;ci<cols;ci++)if(qEnd[ci]>s)activeNow++;
+      let activeNow=0;for(let ci=0;ci<cols;ci++)if(qEnd[ci]>s)activeNow++;
       let need=targetQ-activeNow;
       if(need>0){
         let cand=[];
@@ -318,12 +363,10 @@ function smartPaintTable(tbId,sFrom,sTo,clr,cmd,dMin,dMax,tomCarry){
         }
         cand.sort((a,b)=>a.score-b.score);
         for(let k=0;k<Math.min(need,cand.length);k++){
-          let ci=cand[k].ci;
-          let dur=pickDur();
+          let ci=cand[k].ci,dur=pickDur();
           if(s+dur>sTo&&sTo<48)dur=Math.max(1,sTo-s);
           paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);
-          qEnd[ci]=s+dur;
-          qUsed[ci]++;
+          qEnd[ci]=s+dur;qUsed[ci]++;
         }
       }
     }
@@ -339,10 +382,7 @@ function smartPaintTable(tbId,sFrom,sTo,clr,cmd,dMin,dMax,tomCarry){
       let added=0;
       for(let k=0;k<stats.length&&added<cmd;k++){
         let ci=stats[k].idx;
-        if(!isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci])){
-          paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);
-          stats[k].slots+=dur;added++;
-        }
+        if(!isOff(tb.querySelector('tr.s'+s).querySelectorAll('td:not(.tc)')[ci])){paintIntervalCrossDay(tbId,ci,s,dur,clr,tomCarry);stats[k].slots+=dur;added++;}
       }
       s+=dur;
     }
@@ -376,9 +416,8 @@ function saveTomorrowCarry(tomCarry){
     tmp.innerHTML="<table id='t_tb1'>"+document.getElementById('tb1').innerHTML+"</table><table id='t_tb2'>"+document.getElementById('tb2').innerHTML+"</table>";
     tmp.querySelectorAll('td:not(.tc)').forEach(c=>c.className='green');
     if(typeof raw==='string'&&raw.includes('_')){
-      let cs=raw.split('_')||'';
-      let cls=['green','yellow','light-red','red'];
-      tmp.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});
+      let cs=raw.split('_')[1]||'',cls=['green','yellow','light-red','red','dark-red'];
+      tmp.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%5]+(v>=5?' mb':'');});
     }
     tomCarry.forEach(item=>{
       const tTb=tmp.querySelector('#t_'+item.tbId);
@@ -387,9 +426,9 @@ function saveTomorrowCarry(tomCarry){
         c.className=(s===item.slots-1)?'yellow':item.clr;
       }
     });
-    let newCs=[...tmp.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');
+    let newCs=[...tmp.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:c.classList.contains('dark-red')?4:0)+(c.classList.contains('mb')?5:0)).join('');
     let curParts=getCode().split('_');
-    let tomCode='1_'+newCs+'_'+curParts+'_000000000000_'+curParts+'_'+curParts;
+    let tomCode='1_'+newCs+'_'+curParts[2]+'_000000000000_'+curParts[4]+'_'+curParts[5]+'_'+(curParts[6]||'');
     try{localStorage.setItem('gpo_saved_'+tKey,tomCode);}catch(e){}
     fetch('https://'+host+'/'+tKey+'.json',{method:'PUT',body:JSON.stringify(tomCode)});
   });
@@ -452,14 +491,18 @@ function mkT(id,qs){
   for(let s=0;s<48;s++){let sh=String(Math.floor(s/2)).padStart(2,"0"),sm=s%2?"30":"00",eh=String(Math.floor((s+1)/2)).padStart(2,"0"),em=(s+1)%2?"30":"00";b+="<tr class='s"+s+"'><td class='tc'>"+sh+"."+sm+"-"+eh+"."+em+"</td>"+qs.map(q=>"<td class='green' onclick='cClk(this)'>"+q+"</td>").join("")+"</tr>";}
   document.getElementById(id).innerHTML=h+b;
 }
-mkT('tb1',ALL_Q);mkT('tb2',["1.1","1.2","2.1","2.2","3.1","3.2","4.1","4.2","5.1","5.2"]);
-let g1="",g2="";for(let i=1;i<=21;i++)g1+="<div class='gi' onclick='bClk(this)'>ГВО "+i+"</div>";for(let i=1;i<=3;i++)g2+="<div class='ki' onclick='bClk(this)'>ГКО "+i+"</div>";
-document.getElementById('gvo').innerHTML=g1;document.getElementById('gko').innerHTML=g2;
-function resetGridVisuals(){document.querySelectorAll('td:not(.tc)').forEach(c=>c.className='green');document.querySelectorAll('.gi').forEach(b=>b.className='gi');document.querySelectorAll('.ki').forEach(b=>b.className='ki');qReasons={};document.getElementById('admR').value="0";prevB.tb1.clear();prevB.tb2.clear();turnedOn.tb1={};turnedOn.tb2={};chkRsn();updDispTip();}
+mkT('tb1',ALL_Q);mkT('tb2',ALL_Q);
+let g1="",g2="",g3="";
+for(let i=1;i<=24;i++)g1+="<div class='gi' onclick='bClk(this)'>ГВО "+i+"</div>";
+for(let i=1;i<=3;i++)g2+="<div class='ki' onclick='bClk(this)'>ГКО "+i+"</div>";
+for(let i=1;i<=2;i++)g3+="<div class='ai' onclick='bClk(this)'>ГАО "+i+"</div>";
+document.getElementById('gvo').innerHTML=g1;document.getElementById('gko').innerHTML=g2;document.getElementById('gao').innerHTML=g3;
+document.getElementById('sgao').innerHTML="<div class='si' onclick='bClk(this)'>СГАО</div>";
+function resetGridVisuals(){document.querySelectorAll('td:not(.tc)').forEach(c=>c.className='green');document.querySelectorAll('.gi').forEach(b=>b.className='gi');document.querySelectorAll('.ki').forEach(b=>b.className='ki');document.querySelectorAll('.ai').forEach(b=>b.className='ai');document.querySelectorAll('.si').forEach(b=>b.className='si');qReasons={};document.getElementById('admR').value="0";prevB.tb1.clear();prevB.tb2.clear();turnedOn.tb1={};turnedOn.tb2={};chkRsn();updDispTip();}
 function swDay(d){if(curDay===d)return;curDay=d;document.getElementById('tab0').classList.toggle('on',d===0);document.getElementById('tab1').classList.toggle('on',d===1);resetGridVisuals();ldH();upd();}
 function applyLock(){const scr=document.getElementById('lockScr');if(!ed&&siteMode!=="0"){scr.classList.remove('hid');document.getElementById('lockIco').textContent=siteMode==="1"?"⏸":"🛠";document.getElementById('lockTtl').textContent=siteMode==="1"?"Перерыв сайта":"Технические работы";document.getElementById('lockTxt').textContent=siteMode==="1"?"Сайт временно закрыт на перерыв. Пожалуйста, зайдите чуть позже.":"";}else scr.classList.add('hid');}
 function setSiteSt(){siteMode=document.getElementById('siteSt').value;svH();}
-function unlockOwner(){let p=prompt("Введите пароль владельца:");if(p==="1234"){ed=1;showOwnerBtns();wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.remove('hid'));document.getElementById('siteSt').value=siteMode;syncAdmSel();setT('paint');applyLock();updDispTip();upd();}else if(p!==null)alert("Неверный пароль!");}
+function unlockOwner(){let p=prompt("Введите пароль владельца:");if(p==="12345"){ed=1;showOwnerBtns();wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.remove('hid'));document.getElementById('siteSt').value=siteMode;syncAdmSel();syncTbUi();setT('paint');applyLock();updDispTip();upd();}else if(p!==null)alert("Неверный пароль!");}
 function togAdm(){if(!ed)unlockOwner();else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.add('hid'));svH();applyLock();upd();}}
 function syncAdmSel(){let q=document.getElementById('admQ').value;document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";}
 function setAdmRsn(){let q=document.getElementById('admQ').value,r=document.getElementById('admR').value;if(q==='ALL'){ALL_Q.forEach(x=>{if(r==='0')delete qReasons[x];else qReasons[x]=r;});}else{if(r==='0')delete qReasons[q];else qReasons[q]=r;}chkRsn();svH();}
@@ -469,18 +512,35 @@ function chkRsn(){let q=document.getElementById('qIn').value.trim().replace(',',
 function setT(t){tl=t;bP.classList.toggle('act',t==='paint');bB.classList.toggle('act',t==='blink');if(t==='blink'){au=0;updA();svH();}}
 function togA(){au=!au;updA();if(au)setT('paint');svH();}
 function updA(){bA.textContent=au?"⏱ Авто: ВКЛ":"⏱ Авто: ВЫКЛ";bA.classList.toggle('auto',au);}
-function cClk(c){if(!ed)return;if(tl==='paint'){let m=c.classList.contains('mb');c.className=c.classList.contains('green')?'yellow':c.classList.contains('yellow')?'light-red':c.classList.contains('light-red')?'red':'green';if(m)c.classList.add('mb');}else c.classList.toggle('mb');svH();updDispTip();}
+function cClk(c){if(!ed)return;if(tl==='paint'){let m=c.classList.contains('mb');c.className=c.classList.contains('green')?'yellow':c.classList.contains('yellow')?'light-red':c.classList.contains('light-red')?'red':c.classList.contains('red')?'dark-red':'green';if(m)c.classList.add('mb');}else c.classList.toggle('mb');svH();updDispTip();}
 function bClk(e){if(ed){if(tl==='paint')e.classList.toggle('off');else e.classList.toggle('mb');svH();}}
 function dayKey(){const d=new Date();d.setDate(d.getDate()+curDay);return 'd_'+d.getFullYear()+'_'+String(d.getMonth()+1).padStart(2,'0')+'_'+String(d.getDate()).padStart(2,'0');}
-function getCode(){let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:0)+(c.classList.contains('mb')?4:0)).join('');let bs=[...document.querySelectorAll('.gi,.ki')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode+'_'+evtMode;}
-function applyCode(h){if(!h||!h.includes('_')){resetGridVisuals();upd();return;}let [a,cs,bs,rs,sm,em]=h.split('_');au=(a==='1');updA();siteMode=(sm==='1'||sm==='2')?sm:"0";evtMode=em||"0";document.getElementById('siteSt').value=siteMode;let cls=['green','yellow','light-red','red'];document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%4]+(v>=4?' mb':'');});document.querySelectorAll('.gi,.ki').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});qReasons={};if(rs){ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}try{localStorage.setItem('gpo_saved_'+dayKey(),h);}catch(e){}chkRsn();applyLock();applyEvt();updDispTip();upd();}
+function getCode(){
+  let cs=[...document.querySelectorAll('td:not(.tc)')].map(c=>(c.classList.contains('yellow')?1:c.classList.contains('light-red')?2:c.classList.contains('red')?3:c.classList.contains('dark-red')?4:0)+(c.classList.contains('mb')?5:0)).join('');
+  let bs=[...document.querySelectorAll('.gi,.ki,.ai,.si')].map(b=>(b.classList.contains('off')?1:0)+(b.classList.contains('mb')?2:0)).join('');
+  let rs=ALL_Q.map(q=>qReasons[q]||'0').join('');
+  let tbStr=tbCfg.on+'-'+tbCfg.s+'-'+tbCfg.e+'-'+tbCfg.mask+'-'+tbCfg.q;
+  return (au?'1':'0')+'_'+cs+'_'+bs+'_'+rs+'_'+siteMode+'_'+evtMode+'_'+tbStr;
+}
+function applyCode(h){
+  if(!h||!h.includes('_')){resetGridVisuals();upd();return;}
+  let [a,cs,bs,rs,sm,em,tbs]=h.split('_');au=(a==='1');updA();siteMode=(sm==='1'||sm==='2')?sm:"0";evtMode=em||"0";document.getElementById('siteSt').value=siteMode;
+  if(tbs&&tbs.includes('-')){let p=tbs.split('-');tbCfg={on:p[0]==='1'?1:0,s:parseInt(p[1]||'26',10),e:parseInt(p[2]||'32',10),mask:p[3]||'111111',q:p[4]||''};}
+  syncTbUi();
+  let cls=['green','yellow','light-red','red','dark-red'];
+  document.querySelectorAll('td:not(.tc)').forEach((c,i)=>{let v=parseInt(cs[i]||'0',10);c.className=cls[v%5]+(v>=5?' mb':'');});
+  document.querySelectorAll('.gi,.ki,.ai,.si').forEach((b,i)=>{let v=parseInt(bs[i]||'0',10);b.classList.toggle('off',v%2===1);b.classList.toggle('mb',v>=2);});
+  qReasons={};if(rs){ALL_Q.forEach((q,i)=>{if(rs[i]&&rs[i]!=='0')qReasons[q]=rs[i];});}
+  try{localStorage.setItem('gpo_saved_'+dayKey(),h);}catch(e){}
+  chkRsn();applyLock();applyEvt();updDispTip();upd();
+}
 function svH(){let code=getCode();try{localStorage.setItem('gpo_saved_'+dayKey(),code);}catch(e){}const st=document.getElementById('cldSt');if(st)st.textContent="⏳ Отправка...";const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';fetch('https://'+host+'/'+dayKey()+'.json',{method:'PUT',body:JSON.stringify(code)}).then(r=>{if(!r.ok)throw new Error('Код '+r.status);return r.json();}).then(()=>{if(st)st.textContent="✅ Записано в облако! У всех обновится само";updDispTip();}).catch(e=>{if(st)st.textContent="❌ Ошибка: "+e.message;});}
 function pullCloud(){if(ed)return;const host='grafik-mk-'+'default-rtdb'+'.firebaseio.com';fetch('https://'+host+'/'+dayKey()+'.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(typeof d==='string')applyCode(d);else{resetGridVisuals();try{localStorage.removeItem('gpo_saved_'+dayKey());}catch(e){}upd();}}).catch(()=>{});}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullCloud();});
 function ldH(){resetGridVisuals();let loc="";try{loc=localStorage.getItem('gpo_saved_'+dayKey())||'';}catch(e){}if(loc)applyCode(loc);pullCloud();}
 function copyLink(){let l=location.origin+location.pathname;if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(l).then(shC).catch(()=>prompt("Ссылка:",l));else prompt("Ссылка:",l);}
 function shC(){let b=document.getElementById('famBtn');b.textContent="✅ Скопировано!";setTimeout(()=>{b.textContent="🔗 Ссылка для семьи";},2500);}
-function isOff(c){return c&&(c.classList.contains('red')||c.classList.contains('light-red')||c.classList.contains('yellow'));}
+function isOff(c){return c&&(c.classList.contains('red')||c.classList.contains('light-red')||c.classList.contains('yellow')||c.classList.contains('dark-red'));}
 function getRow(tb,s){return tb.querySelector('tr.s'+s);}
 function updStatus(tbId,stId,cur,remMin,nowMs){
   if(curDay!==0){document.getElementById(stId).innerHTML="";return;}
@@ -500,11 +560,33 @@ function updStatus(tbId,stId,cur,remMin,nowMs){
 function upd(){
   const n=new Date(),nowMs=n.getTime();document.getElementById('clk').textContent="Время: "+n.toTimeString().slice(0,8);
   const m=n.getMinutes(),cur=n.getHours()*2+(m>=30?1:0),remMin=(m>=30?60-m:30-m);
-  for(let s=0;s<48;s++){document.querySelectorAll('.s'+s).forEach(r=>{r.classList.toggle('cur',curDay===0&&s===cur);r.querySelectorAll('td:not(.tc)').forEach(c=>{c.classList.toggle('bn',!ed&&(au?(curDay===0&&s===cur&&isOff(c)):c.classList.contains('mb')));});});}
-  document.querySelectorAll('.gi,.ki').forEach(e=>e.classList.toggle('bn',!ed&&(au?(curDay===0&&e.classList.contains('off')):e.classList.contains('mb'))));
+  const useTimed=(tbCfg.on===1),inWin=(curDay===0&&cur>=tbCfg.s&&cur<tbCfg.e);
+  const qList=tbCfg.q?tbCfg.q.split(',').map(x=>x.trim().replace(',','.')).filter(Boolean):[];
+  const qMatch=q=>!qList.length||qList.includes(q);
+  ['tb1','tb2'].forEach((tid,ti)=>{
+    const allowed=useTimed?(inWin&&tbCfg.mask[ti]==='1'):true;
+    for(let s=0;s<48;s++){
+      document.querySelectorAll('#'+tid+' .s'+s).forEach(r=>{
+        r.classList.toggle('cur',curDay===0&&s===cur);
+        r.querySelectorAll('td:not(.tc)').forEach(c=>{
+          let q=c.textContent.trim(),blink=false;
+          if(!ed){if(useTimed)blink=allowed&&s===cur&&isOff(c)&&qMatch(q);else blink=au?(curDay===0&&s===cur&&isOff(c)):c.classList.contains('mb');}
+          c.classList.toggle('bn',blink);
+        });
+      });
+    }
+  });
+  [['.gi',2],['.ki',3],['.ai',4],['.si',5]].forEach(([sel,mi])=>{
+    document.querySelectorAll(sel).forEach(e=>{
+      let blink=false;
+      if(!ed){if(useTimed)blink=inWin&&tbCfg.mask[mi]==='1'&&e.classList.contains('off');else blink=au?(curDay===0&&e.classList.contains('off')):e.classList.contains('mb');}
+      e.classList.toggle('bn',blink);
+    });
+  });
   updStatus('tb1','st1',cur,remMin,nowMs);updStatus('tb2','st2',cur,remMin,nowMs);
 }
 ldH();updA();applyLock();applyEvt();updDispTip();upd();setInterval(upd,1000);setInterval(pullCloud,3000);
 </script>
 </body>
 </html>
+
