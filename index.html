@@ -504,7 +504,8 @@ function setSiteSt(){siteMode=document.getElementById('siteSt').value;svH();}
 function unlockOwner(){let p=prompt("Введите пароль владельца:");if(p==="12345"){ed=1;showOwnerBtns();wr.classList.add('edit');bE.textContent="✅ Готово";bE.classList.add('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.remove('hid'));document.getElementById('siteSt').value=siteMode;syncAdmSel();syncTbUi();setT('paint');applyLock();updDispTip();upd();}else if(p!==null)alert("Неверный пароль!");}
 function syncBlink(){const bns=document.querySelectorAll('.bn');bns.forEach(e=>{e.style.animation='none';});void document.body.offsetWidth;bns.forEach(e=>{e.style.animation='';});}
 function togAdm(){if(!ed)unlockOwner();else{ed=0;wr.classList.remove('edit');bE.textContent="🔒 Изменить";bE.classList.remove('done');[bP,bB,bA,admRsn].forEach(x=>x.classList.add('hid'));svH();applyLock();upd();syncBlink();}}
-{let q=document.getElementById('admQ').value;document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";}
+function syncAdmSel(){let q=document.getElementById('admQ').value;document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";}
+document.getElementById('admR').value=(q!=='ALL'&&qReasons[q])?qReasons[q]:"0";}
 function setAdmRsn(){let q=document.getElementById('admQ').value,r=document.getElementById('admR').value;if(q==='ALL'){ALL_Q.forEach(x=>{if(r==='0')delete qReasons[x];else qReasons[x]=r;});}else{if(r==='0')delete qReasons[q];else qReasons[q]=r;}chkRsn();svH();}
 function resetAllRsn(){qReasons={};document.getElementById('admR').value="0";chkRsn();svH();}
 function clearAllTables(){if(!confirm("Очистить график на выбранный день?"))return;resetGridVisuals();svH();upd();}
